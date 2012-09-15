@@ -1,0 +1,141 @@
+﻿using System;
+using iKnode.Applications;
+using iKnodeSdk.UnitTest.Domain;
+
+namespace iKnodeSdk.UnitTest.Applications
+{
+    /// <summary>
+    /// Defines the User Service.
+    /// </summary>
+	[Application]
+	public class UserService    
+	{
+        /// <summary>
+        /// Gets the User First Name by its identifier.
+        /// </summary>
+        /// <param name="id">User Identifier.</param>
+        /// <returns>User First Name/.</returns>
+        public string GetFirstNameById(int id)
+        {
+            return "Robert";
+        }
+        
+        /// <summary>
+        /// Gets the Most Common User First Name.
+        /// </summary>
+        /// <returns>Most Common User First Name/.</returns>
+        public string GetMostCommonFirstName()
+        {
+            return "John";
+        }        
+        
+        /// <summary>
+        /// Gets the User by its identifier.
+        /// </summary>
+        /// <param name="id">User Identifier.</param>
+        /// <returns>User Information.</returns>
+        public User GetById(int id)
+        {
+            if(id != 1) {
+                return null;
+            }
+            
+            return new User(1, new FullName("John", "Doe"));
+        }
+        
+        /// <summary>
+        /// Saves the User Information.
+        /// </summary>
+        /// <param name="user">User Information.</param>
+        /// <returns>User Identifier.</returns>
+        public int Save(User user)
+        {
+            if(user == null) {
+                return -1;
+            }
+            
+            //TODO: Here your store the User Information.
+            
+            return user.Id;
+        }
+        
+        /// <summary>
+        /// Creates a new User with the Default Information.
+        /// </summary>
+        /// <returns>User Information.</returns>        
+        public User CreateDefault()
+        {
+            return new User(2, new FullName("Jane", "Doe"));
+        }
+        
+        /// <summary>
+        /// Creates a new User.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <param name="name">Name.</param>
+        /// <returns>User Information.</returns>        
+        public User Create(int id, FullName name)
+        {
+            return new User(id, name);
+        }
+	}    
+}
+
+namespace iKnodeSdk.UnitTest.Domain
+{
+    /// <summary>
+    /// Defines the Full Name class.
+    /// </summary>
+    [Serializable]
+    public class FullName
+    {
+        /// <summary>
+        /// First Name.
+        /// </summary>
+        public string FirstName;
+
+        /// <summary>
+        /// Last Name.
+        /// </summary>
+        public string LastName;
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FullName"/> class.
+        /// </summary>
+        /// <param name="firstName">First Name/</param>
+        /// <param name="lastName">Last Name.</param>
+        public FullName(string firstName, string lastName)
+        {
+            this.FirstName = firstName;
+            this.LastName = lastName;
+        }
+    }
+    
+    /// <summary>
+    /// Defines the User class.
+    /// </summary>
+    [Serializable]
+    public class User
+    {
+        /// <summary>
+        /// Identifier.
+        /// </summary>
+        public int Id;
+
+        /// <summary>
+        /// Full Name.
+        /// </summary>
+        public FullName Name;
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="User"/> class.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <param name="name">Name.</param>
+        public User(int id, FullName name)
+        {
+            this.Id = id;
+            this.Name = name;
+        }
+    }
+}

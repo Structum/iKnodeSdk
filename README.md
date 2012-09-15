@@ -1,4 +1,8 @@
-iKnodeSdk
-=========
+# iKnode Software Development Kit
 
-iKnode Software Development Kit for C#, Javascript, Java and Objective-C
+The iKnode Software DEvelopment Kit (SDK) provides libraries and tools that developers can use to create applications that use the iKnode Backend Cloud Platform.
+
+## Suported Languages
+C#
+Javascript 
+
