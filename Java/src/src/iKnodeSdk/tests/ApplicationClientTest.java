@@ -44,7 +44,7 @@ public class ApplicationClientTest {
 	@Test
 	public void execute_noParamsTest()
 	{
-		String result = this._client.execute("GetMostCommonFirstName");
+		String result = this._client.execute(String.class, "GetMostCommonFirstName");
 		
 		assertEquals("John", result);
 	}
@@ -55,7 +55,7 @@ public class ApplicationClientTest {
 	@Test
     public void execute_withParamsTest()
     {
-        String result = this._client.execute("GetFirstNameById", new MethodParameter("id", 1));
+        String result = this._client.execute(String.class, "GetFirstNameById", new MethodParameter("id", 1));
 
         assertEquals("Robert", result);
     }
@@ -67,13 +67,13 @@ public class ApplicationClientTest {
     public void execute_complexObject_noParamsTest()
     {
         User expected = new User(2, new FullName("Jane", "Doe"));
-        User actual = this._client.execute("CreateDefault");
+        User actual = this._client.execute(User.class, "CreateDefault");
         
         assertNotNull(actual);
-        assertEquals(expected.getId(), actual.getId());
-        assertNotNull(actual.getName());
+        assertEquals(expected.Id, actual.Id);
+        assertNotNull(actual.Name);
         
-        assertEquals(expected.getName().getFirstName(), actual.getName().getFirstName());
-        assertEquals(expected.getName().getLastName(), actual.getName().getLastName());        
+        assertEquals(expected.Name.FirstName, actual.Name.FirstName);
+        assertEquals(expected.Name.LastName, actual.Name.LastName);        
     }	
 }

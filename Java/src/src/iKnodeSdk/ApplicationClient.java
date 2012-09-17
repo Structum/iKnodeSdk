@@ -1,6 +1,5 @@
 package iKnodeSdk;
 
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,7 +10,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
 
 /**
  * Defines the Application Client.
@@ -73,14 +72,13 @@ public final class ApplicationClient {
 	 * @return Result Object.
 	 * @since 0.1
 	 */
-	public <T extends Object> T execute(final String methodName, final MethodParameter... parameters)
+	public <T> T execute(Class<T> resultType, final String methodName, final MethodParameter... parameters)
 	{
 		final String result = this.executeRequest(this._userId, this._apiKey, this._applicationName, methodName, parameters);
-	
-		Type rType = new TypeToken<T>(){}.getType();
-		
-		T responseObject = new Gson().fromJson(result, rType);
-		
+
+		Gson gson = new GsonBuilder().create();		
+		T responseObject = gson.fromJson(result, resultType);
+
 		return responseObject;
 	}
 		
