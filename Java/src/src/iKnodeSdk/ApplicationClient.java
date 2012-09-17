@@ -71,7 +71,7 @@ public final class ApplicationClient {
 	 * @return Result Object.
 	 * @since 0.1
 	 */
-	public <T extends Object> T Execute(final Class<T> resultType, final String methodName, final MethodParameter... parameters)
+	public <T extends Object> T execute(final Class<T> resultType, final String methodName, final MethodParameter... parameters)
 	{
 		final String result = this.executeRequest(this._userId, this._apiKey, this._applicationName, methodName, parameters);
 		
@@ -100,7 +100,6 @@ public final class ApplicationClient {
 			HttpURLConnection connection = this.getRequestUrlConnection(appServiceUrl);
 			
 			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 			connection.setRequestProperty("Content-Type", "application/json");
 			connection.addRequestProperty("iKnode-UserId", userId);
 			connection.addRequestProperty("iKnode-ApiKey", apiKey);
@@ -165,14 +164,21 @@ public final class ApplicationClient {
 	 * @return Cleaned result string
 	 * @since 0.1
 	 */
-	private String cleanResult(final String result)
+	private String cleanResult(String result)
 	{
-		String cleanedResult;
+		if(result.startsWith("<string")) {
+			if(result.endsWith("</string>")) {
+				result = result.replace("<string xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\">", "");
+				result = result.replace("</string>", "");		
+			} else {
+				result = result.replace("<string xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\" />", "");
+			}			
+		}
 		
-		cleanedResult = result.replaceAll("^\"|\"$", "");
-		cleanedResult = result.replaceAll("\\\\\"", "\"");
+		result = result.replaceAll("^\"|\"$", "");
+		result = result.replaceAll("\\\\\"", "\"");
 		
-		return cleanedResult;
+		return result;
 	}
 	
 	/**
