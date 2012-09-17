@@ -55,7 +55,7 @@ public final class ApplicationClient {
 	 * 
 	 * @since 0.1
 	 */
-	public ApplicationClient(String userId, String apiKey, String applicationName)
+	public ApplicationClient(final String userId, final String apiKey, final String applicationName)
 	{
 		this._userId = userId;
 		this._apiKey = apiKey;
@@ -67,11 +67,11 @@ public final class ApplicationClient {
 	 * 
 	 * @param resultType Result Type expected.
 	 * @param methodName Method Name.
-	 * @param parameters Variable parameters to use.
+	 * @param parameters Variable Parameters to use.
 	 * @return Result Object.
 	 * @since 0.1
 	 */
-	public <T> T Execute(Class<T> resultType, String methodName, MethodParameter... parameters)
+	public <T extends Object> T Execute(final Class<T> resultType, final String methodName, final MethodParameter... parameters)
 	{
 		final String result = this.executeRequest(this._userId, this._apiKey, this._applicationName, methodName, parameters);
 		
@@ -91,7 +91,7 @@ public final class ApplicationClient {
 	 * @return Result Object.
 	 * @since 0.1
 	 */
-	private String executeRequest(String userId, String apiKey, String applicationName, String methodName, MethodParameter... parameters)
+	private String executeRequest(final String userId, final String apiKey, final String applicationName, final String methodName, final MethodParameter... parameters)
 	{	
 		String result;
 		final String appServiceUrl = String.format("%s/Applications/execute/%s/%s", SERVICE_URL, applicationName, methodName);
@@ -135,7 +135,7 @@ public final class ApplicationClient {
 	 * @return {@link HttpURLConnection} instance.
 	 * @since 0.1
 	 */
-	private HttpURLConnection getRequestUrlConnection(String appServiceUrl)
+	private HttpURLConnection getRequestUrlConnection(final String appServiceUrl)
 			throws MalformedURLException,
 				   IOException,
 				   IllegalStateException
@@ -165,22 +165,47 @@ public final class ApplicationClient {
 	 * @return Cleaned result string
 	 * @since 0.1
 	 */
-	private String cleanResult(String result)
+	private String cleanResult(final String result)
 	{
-		result = result.replaceAll("^\"|\"$", "");
-		result = result.replaceAll("\\\\\"", "\"");
+		String cleanedResult;
 		
-		return result;
+		cleanedResult = result.replaceAll("^\"|\"$", "");
+		cleanedResult = result.replaceAll("\\\\\"", "\"");
+		
+		return cleanedResult;
 	}
 	
 	/**
-	 * 
-	 * @param parameters
-	 * @return
+	 * Formats the parameter array to be used for the JSON REST Command.
+	 *  
+	 * @param parameters Parameters array.
+	 * @return Formatted parameters string.
+	 * @since 0.1
 	 */
-	private String formatParameters(MethodParameter... parameters)
-		throws Exception
+	private String formatParameters(final MethodParameter... parameters)
 	{
-		throw new Exception("Not implemented");
-	}
+		StringBuffer params = new StringBuffer();
+		
+		params.append("{ \"parameters\": \"{");
+
+        int index = 0;
+        int count = parameters.length;
+        
+        for(MethodParameter parameter : parameters) {
+            String paramValue = parameter.getValue().toString();
+
+            paramValue = new Gson().toJson(parameter.getValue());
+            paramValue = paramValue.replace("\"", "\\\"");
+
+            params.append(String.format(" %s:'%s'", parameter.getName(), paramValue));
+            
+            if(++index < count) {
+                params.append(",");
+            }
+        }
+
+        params.append("}\" }");
+
+        return params.toString();		
+	}	
 }
