@@ -1,18 +1,23 @@
 package iKnodeSdk.tests;
 
 import static org.junit.Assert.*;
+
+import java.util.concurrent.Callable;
+
 import iKnodeSdk.ApplicationClient;
 import iKnodeSdk.MethodParameter;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runners.Suite.SuiteClasses;
 
 /**
  * Test Case for the iKnode Sdk.
  * 
  * @author jgemedina
  */
+@SuiteClasses(ApplicationClientTest.class)
 public class ApplicationClientTest {
 
 	/**
@@ -77,5 +82,19 @@ public class ApplicationClientTest {
         assertEquals(expected.Name.LastName, actual.Name.LastName);        
     }
     
-    
+    /**
+     * Tests the Execute using Complex Objects with no parameters Method.
+     */
+    @Test
+    public void execute_complexObject_withParamsTest()
+    {
+        User expected = new User(1, new FullName("Alex", "Espinoza"));
+        User actual = this._client.execute(User.class, "Create", new MethodParameter("id", expected.Id), new MethodParameter("name", expected.Name));
+        
+        assertNotNull(actual);
+        assertEquals(expected.Id, actual.Id);
+        assertNotNull(actual.Name);
+        assertEquals(expected.Name.FirstName, actual.Name.FirstName);
+        assertEquals(expected.Name.LastName, actual.Name.LastName);
+    }
 }

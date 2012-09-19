@@ -85,18 +85,28 @@ public final class ApplicationClient {
 		return responseObject;
 	}
 	
-	public <T> Thread execute(final Class<T> resultType, final Callable<T> callback, final String methodName, final MethodParameter... parameters)
+	/**
+	 * 
+	 * @param resultType
+	 * @param callback
+	 * @param methodName
+	 * @param parameters
+	 * @return
+	 */
+	public <T> Task<T> executeAsync(final Class<T> resultType, final Callback<T> callback, final String methodName, final MethodParameter... parameters)
 	{
-		Task<T> task = new Task<T>(
-				new Callable<T>() {
-					@Override
-					public T call() throws Exception {
-						return ApplicationClient.this.execute(resultType, methodName, parameters);
-					}
-				},
-				callback);
+		Task<T> t = new Task<T>(new Runnable() {
+			public void run() {
+				final T result = ApplicationClient.this.execute(resultType, methodName, parameters);
+				
+				if(callback != null) {
+					callback.setResult(result);
+					callback.call();
+				}
+			}
+		});
 		
-		return new Thread(task);
+		return t;
 	}
 		
 	/**
