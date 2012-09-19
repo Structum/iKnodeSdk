@@ -3,6 +3,9 @@ package iKnodeSdk;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -80,6 +83,20 @@ public final class ApplicationClient {
 		T responseObject = gson.fromJson(result, resultType);
 
 		return responseObject;
+	}
+	
+	public <T> Thread execute(final Class<T> resultType, final Callable<T> callback, final String methodName, final MethodParameter... parameters)
+	{
+		Task<T> task = new Task<T>(
+				new Callable<T>() {
+					@Override
+					public T call() throws Exception {
+						return ApplicationClient.this.execute(resultType, methodName, parameters);
+					}
+				},
+				callback);
+		
+		return new Thread(task);
 	}
 		
 	/**

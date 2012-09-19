@@ -75,5 +75,7 @@ public class ApplicationClientTest {
         
         assertEquals(expected.Name.FirstName, actual.Name.FirstName);
         assertEquals(expected.Name.LastName, actual.Name.LastName);        
-    }	
+    }
+    
+    
 }
