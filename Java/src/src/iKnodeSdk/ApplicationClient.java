@@ -3,9 +3,6 @@ package iKnodeSdk;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,7 +20,7 @@ import com.google.gson.GsonBuilder;
  */
 public final class ApplicationClient {
 	/**
-	 * Defines the base service url.
+	 * Base service url.
 	 * 
 	 * @since 0.1
 	 */
@@ -69,40 +66,62 @@ public final class ApplicationClient {
 	/**
 	 * Executes the method with the selected parameters for the current application.
 	 * 
-	 * @param resultType Result Type expected.
+	 * @param resultType Result type expected.
 	 * @param methodName Method Name.
 	 * @param parameters Variable Parameters to use.
-	 * @return Result Object.
+	 * @return Execution result object.
+	 * @throws iKnodeClientException Thrown when a connection, request or response error raises.
+	 * 
 	 * @since 0.1
 	 */
-	public <T> T execute(Class<T> resultType, final String methodName, final MethodParameter... parameters)
+	public <T> T execute(final Class<T> resultType, final String methodName, final MethodParameter... parameters)
+			throws iKnodeClientException 
 	{
-		final String result = this.executeRequest(this._userId, this._apiKey, this._applicationName, methodName, parameters);
-
-		Gson gson = new GsonBuilder().create();		
-		T responseObject = gson.fromJson(result, resultType);
+		T responseObject;
+		
+		try {
+			final String result = this.executeRequest(this._userId, this._apiKey, this._applicationName, methodName, parameters);
+	
+			Gson gson = new GsonBuilder().create();		
+			responseObject = gson.fromJson(result, resultType);
+		} catch(final MalformedURLException muex) {
+			throw new iKnodeClientException("Incorrect Uri provided as the Base Service Url.", muex);
+		} catch(final IllegalStateException isex) {
+			throw new iKnodeClientException("Illegal state exception raised, perhaps the connection is in fauled state or already opened.", isex);
+		} catch(final IOException ioex) {
+			throw new iKnodeClientException("An I/O error ocurred when trying to either write the request or read the server response.", ioex);
+		}
 
 		return responseObject;
 	}
 	
 	/**
+	 * Executes the method asynchronously with the selected parameters for the current application.
 	 * 
-	 * @param resultType
-	 * @param callback
-	 * @param methodName
-	 * @param parameters
-	 * @return
+	 * @param resultType Result type expected.
+	 * @param callback Callback method to execute after getting the response.
+	 * @param parameters Variable Parameters to use.
+	 * @return Execution result object.
+	 * 
+	 * @since 0.1
 	 */
 	public <T> Task<T> executeAsync(final Class<T> resultType, final Callback<T> callback, final String methodName, final MethodParameter... parameters)
 	{
 		Task<T> t = new Task<T>(new Runnable() {
 			public void run() {
-				final T result = ApplicationClient.this.execute(resultType, methodName, parameters);
+				T result;
+				
+				try {
+					result = ApplicationClient.this.execute(resultType, methodName, parameters);					
+				} catch(final iKnodeClientException icex) {
+					// Not much to do here...
+					result = null;
+				}
 				
 				if(callback != null) {
 					callback.setResult(result);
 					callback.call();
-				}
+				}				
 			}
 		});
 		
@@ -117,43 +136,52 @@ public final class ApplicationClient {
 	 * @param applicationName Application Name.
 	 * @param methodName Method to execute.
 	 * @param parameters Variable parameters to use.
-	 * @return Result Object.
+	 * @return Execution result object.
+	 * 
+	 * @throws IOException Thrown if either the connection or streams cannot be closed.
+	 * @throws IllegalStateException 
+	 * @thorws MalformedURLException 
+	 * 
 	 * @since 0.1
 	 */
-	private String executeRequest(final String userId, final String apiKey, final String applicationName, final String methodName, final MethodParameter... parameters)
+	private String executeRequest(final String userId,
+								  final String apiKey,
+								  final String applicationName,
+								  final String methodName,
+								  final MethodParameter... parameters)
+		throws MalformedURLException,
+		   IOException,
+		   IllegalStateException
 	{	
-		String result;
+		HttpURLConnection connection = null;
+		OutputStream requestStream = null;
+		InputStream responseStream = null;
+		
 		final String appServiceUrl = String.format("%s/Applications/execute/%s/%s", SERVICE_URL, applicationName, methodName);
 		
-		try {
-			HttpURLConnection connection = this.getRequestUrlConnection(appServiceUrl);
-			
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type", "application/json");
-			connection.addRequestProperty("iKnode-UserId", userId);
-			connection.addRequestProperty("iKnode-ApiKey", apiKey);
-			
-			// Make the request...
-			byte[] requestData = this.formatParameters(parameters).getBytes();
-			OutputStream os = connection.getOutputStream();
-			os.write(requestData, 0, requestData.length);
-			
-			// Let's hear back from it!
-			InputStream responseStream = connection.getInputStream();
-			BufferedReader bufferedStream = new BufferedReader(new InputStreamReader(responseStream));
-			
-			String line;
-			StringBuffer responseBuffr = new StringBuffer();
-			while((line = bufferedStream.readLine()) != null) {
-				responseBuffr.append(line);
-			}
-			
-			result = this.cleanResult(responseBuffr.toString());
-		} catch(Exception ex) {
-			result = null;
+		connection = this.getRequestUrlConnection(appServiceUrl);
+		
+		connection.setRequestMethod("POST");
+		connection.setRequestProperty("Content-Type", "application/json");
+		connection.addRequestProperty("iKnode-UserId", userId);
+		connection.addRequestProperty("iKnode-ApiKey", apiKey);
+		
+		// Make the request...
+		byte[] requestData = this.formatParameters(parameters).getBytes();
+		requestStream = connection.getOutputStream();
+		requestStream.write(requestData, 0, requestData.length);
+		
+		// Let's hear back from it!
+		responseStream = connection.getInputStream();
+		BufferedReader bufferedStream = new BufferedReader(new InputStreamReader(responseStream));
+		
+		String line;
+		StringBuffer responseBuffr = new StringBuffer();
+		while((line = bufferedStream.readLine()) != null) {
+			responseBuffr.append(line);
 		}
 		
-		return result;
+		return cleanResult(responseBuffr.toString());			
 	}
 	
 	/**
@@ -161,12 +189,15 @@ public final class ApplicationClient {
 	 * 
 	 * @param appServiceUrl Service Url.
 	 * @return {@link HttpURLConnection} instance.
+	 * @throws Exception
+	 *  
 	 * @since 0.1
 	 */
 	private HttpURLConnection getRequestUrlConnection(final String appServiceUrl)
 			throws MalformedURLException,
 				   IOException,
 				   IllegalStateException
+			
 	{
 		HttpURLConnection connection;
 				
@@ -175,12 +206,12 @@ public final class ApplicationClient {
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setDoOutput(true);
 			connection.setDoInput(true);
-		} catch (MalformedURLException muex) {			
-			connection = null;
-		} catch(IOException ioex) {			
-			connection = null;
-		} catch(IllegalStateException isex) {
-			connection = null;
+		} catch (final MalformedURLException muex) {			
+			throw muex;
+		} catch(final IOException ioex) {			
+			throw ioex;
+		} catch(final IllegalStateException isex) {
+			throw isex;
 		}
 
 		return connection;
@@ -191,6 +222,7 @@ public final class ApplicationClient {
 	 * 
 	 * @param result Result string
 	 * @return Cleaned result string
+	 * 
 	 * @since 0.1
 	 */
 	private String cleanResult(String result)
@@ -215,6 +247,7 @@ public final class ApplicationClient {
 	 *  
 	 * @param parameters Parameters array.
 	 * @return Formatted parameters string.
+	 * 
 	 * @since 0.1
 	 */
 	private String formatParameters(final MethodParameter... parameters)

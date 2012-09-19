@@ -2,10 +2,9 @@ package iKnodeSdk.tests;
 
 import static org.junit.Assert.*;
 
-import java.util.concurrent.Callable;
-
 import iKnodeSdk.ApplicationClient;
 import iKnodeSdk.MethodParameter;
+import iKnodeSdk.iKnodeClientException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -45,9 +44,11 @@ public class ApplicationClientTest {
 
 	/**
 	 * Tests the Execute with no parameters Method.
+	 * 
+	 * @throws iKnodeClientException Thrown if any exception is raised during execution. 
 	 */
 	@Test
-	public void execute_noParamsTest()
+	public void execute_noParamsTest() throws iKnodeClientException
 	{
 		String result = this._client.execute(String.class, "GetMostCommonFirstName");
 		
@@ -56,9 +57,11 @@ public class ApplicationClientTest {
 
 	/**
 	 * Tests the Execute using Complex Objects with no parameters Method.
+	 * 
+	 * @throws iKnodeClientException Thrown if any exception is raised during execution. 
 	 */
 	@Test
-    public void execute_withParamsTest()
+    public void execute_withParamsTest() throws iKnodeClientException
     {
         String result = this._client.execute(String.class, "GetFirstNameById", new MethodParameter("id", 1));
 
@@ -67,9 +70,11 @@ public class ApplicationClientTest {
 	
 	/**
 	 * Tests the Execute using Complex Objects with no parameters Method.
+	 * 
+	 * @throws iKnodeClientException Thrown if any exception is raised during execution. 
 	 */
     @Test
-    public void execute_complexObject_noParamsTest()
+    public void execute_complexObject_noParamsTest() throws iKnodeClientException
     {
         User expected = new User(2, new FullName("Jane", "Doe"));
         User actual = this._client.execute(User.class, "CreateDefault");
@@ -84,9 +89,11 @@ public class ApplicationClientTest {
     
     /**
      * Tests the Execute using Complex Objects with no parameters Method.
+     * 
+     * @throws iKnodeClientException Thrown if any exception is raised during execution. 
      */
     @Test
-    public void execute_complexObject_withParamsTest()
+    public void execute_complexObject_withParamsTest() throws iKnodeClientException
     {
         User expected = new User(1, new FullName("Alex", "Espinoza"));
         User actual = this._client.execute(User.class, "Create", new MethodParameter("id", expected.Id), new MethodParameter("name", expected.Name));
