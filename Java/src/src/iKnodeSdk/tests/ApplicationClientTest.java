@@ -2,6 +2,9 @@ package iKnodeSdk.tests;
 
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+
 import iKnodeSdk.ApplicationClient;
 import iKnodeSdk.MethodParameter;
 import iKnodeSdk.iKnodeClientException;
@@ -10,6 +13,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runners.Suite.SuiteClasses;
+
+import com.google.gson.reflect.TypeToken;
 
 /**
  * Test Case for the iKnode Sdk.
@@ -50,7 +55,8 @@ public class ApplicationClientTest {
 	@Test
 	public void execute_noParamsTest() throws iKnodeClientException
 	{
-		String result = this._client.execute(String.class, "GetMostCommonFirstName");
+		Type resultType = new TypeToken<String>(){}.getType();
+		String result = this._client.execute(resultType, "GetMostCommonFirstName");
 		
 		assertEquals("John", result);
 	}
@@ -63,7 +69,8 @@ public class ApplicationClientTest {
 	@Test
     public void execute_withParamsTest() throws iKnodeClientException
     {
-        String result = this._client.execute(String.class, "GetFirstNameById", new MethodParameter("id", 1));
+		Type resultType = new TypeToken<String>(){}.getType();
+        String result = this._client.execute(resultType, "GetFirstNameById", new MethodParameter("id", 1));
 
         assertEquals("Robert", result);
     }
@@ -77,7 +84,9 @@ public class ApplicationClientTest {
     public void execute_complexObject_noParamsTest() throws iKnodeClientException
     {
         User expected = new User(2, new FullName("Jane", "Doe"));
-        User actual = this._client.execute(User.class, "CreateDefault");
+        
+        Type resultType = new TypeToken<User>(){}.getType();
+        User actual = this._client.execute(resultType, "CreateDefault");
         
         assertNotNull(actual);
         assertEquals(expected.Id, actual.Id);
@@ -96,12 +105,35 @@ public class ApplicationClientTest {
     public void execute_complexObject_withParamsTest() throws iKnodeClientException
     {
         User expected = new User(1, new FullName("Alex", "Espinoza"));
-        User actual = this._client.execute(User.class, "Create", new MethodParameter("id", expected.Id), new MethodParameter("name", expected.Name));
+        
+        Type resultType = new TypeToken<User>(){}.getType();
+        User actual = this._client.execute(resultType, "Create", new MethodParameter("id", expected.Id), new MethodParameter("name", expected.Name));
         
         assertNotNull(actual);
         assertEquals(expected.Id, actual.Id);
         assertNotNull(actual.Name);
         assertEquals(expected.Name.FirstName, actual.Name.FirstName);
         assertEquals(expected.Name.LastName, actual.Name.LastName);
+    }
+    
+    /**
+     * 
+     * @throws iKnodeClientException
+     */
+    @Test
+    public void execute_listOfComplexObjects_noParamsTest() throws iKnodeClientException
+    {    	
+    	Type t2 = new TypeToken<ArrayList<User>>(){}.getType();
+    	
+    	ArrayList<User> users = this._client.execute(t2, "GetList");
+    	User firstExpected = new User(1, new FullName("Alex", "Espinoza"));
+    	
+    	assertNotNull(users);
+    	assertTrue(users.size() > 0);
+    	
+    	User user = users.get(0);    	
+    	assertEquals(firstExpected.Id, user.Id);
+    	assertEquals(firstExpected.Name.FirstName, user.Name.FirstName);
+    	assertEquals(firstExpected.Name.LastName, user.Name.LastName);
     }
 }

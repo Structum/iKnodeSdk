@@ -1,5 +1,6 @@
 package iKnodeSdk;
 
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -74,7 +75,7 @@ public final class ApplicationClient {
 	 * 
 	 * @since 0.1
 	 */
-	public <T> T execute(final Class<T> resultType, final String methodName, final MethodParameter... parameters)
+	public <T> T execute(final Type resultType, final String methodName, final MethodParameter... parameters)
 			throws iKnodeClientException 
 	{
 		T responseObject;
