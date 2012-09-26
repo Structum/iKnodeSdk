@@ -106,7 +106,7 @@ public final class ApplicationClient {
 	 * 
 	 * @since 0.1
 	 */
-	public <T> Task<T> executeAsync(final Class<T> resultType, final Callback<T> callback, final String methodName, final MethodParameter... parameters)
+	public <T> Task<T> executeAsync(final Type resultType, final Callback<T> callback, final String methodName, final MethodParameter... parameters)
 	{
 		Task<T> t = new Task<T>(new Runnable() {
 			public void run() {

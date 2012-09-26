@@ -1,5 +1,12 @@
 package net.structum.iknodesdk;
 
+import net.structum.iknodesdk.ApplicationClient;
+import net.structum.iknodesdk.Callback;
+import net.structum.iknodesdk.MethodParameter;
+import net.structum.iknodesdk.Task;
+import net.structum.iknodesdk.iKnodeClientException;
+
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -74,7 +81,7 @@ public final class ApplicationClient {
 	 * 
 	 * @since 0.1
 	 */
-	public <T> T execute(final Class<T> resultType, final String methodName, final MethodParameter... parameters)
+	public <T> T execute(final Type resultType, final String methodName, final MethodParameter... parameters)
 			throws iKnodeClientException 
 	{
 		T responseObject;
@@ -105,7 +112,7 @@ public final class ApplicationClient {
 	 * 
 	 * @since 0.1
 	 */
-	public <T> Task<T> executeAsync(final Class<T> resultType, final Callback<T> callback, final String methodName, final MethodParameter... parameters)
+	public <T> Task<T> executeAsync(final Type resultType, final Callback<T> callback, final String methodName, final MethodParameter... parameters)
 	{
 		Task<T> t = new Task<T>(new Runnable() {
 			public void run() {
