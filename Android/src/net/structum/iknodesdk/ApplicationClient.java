@@ -1,4 +1,10 @@
-package iKnodeSdk;
+package net.structum.iknodesdk;
+
+import net.structum.iknodesdk.ApplicationClient;
+import net.structum.iknodesdk.Callback;
+import net.structum.iknodesdk.MethodParameter;
+import net.structum.iknodesdk.Task;
+import net.structum.iknodesdk.iKnodeClientException;
 
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
