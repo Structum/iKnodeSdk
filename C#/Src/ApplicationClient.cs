@@ -14,7 +14,7 @@ namespace iKnodeSdk
     /// <example>
     /// The following shows you how to use the Client with <b>Sync</b> methods:
     /// <code>
-    /// ApplicationClient appClient = new ApplicationClient(myUserId, myApiKey, "MyApplication");
+    /// ApplicationClient appClient = new ApplicationClient("https://api.iknode.com", myUserId, myApiKey, "MyApplication");
     ///
     /// // Call the Execute Method.
     /// string result = appClient.Execute<string>("MyMethod", new MethodParameter("Param1", "Param1Value"),  new MethodParameter("Param2", "Param2Value"));
@@ -22,7 +22,7 @@ namespace iKnodeSdk
     /// <br />
     /// The following shows you how to use the Client with <b>Asnyc</b> methods:
     /// <code>
-    /// ApplicationClient appClient = new ApplicationClient(myUserId, myApiKey, "MyApplication");
+    /// ApplicationClient appClient = new ApplicationClient("https://api.iknode.com", myUserId, myApiKey, "MyApplication");
     /// 
     /// // Create the Callback.
     /// Action<string> callback = (result) => {
@@ -37,9 +37,13 @@ namespace iKnodeSdk
     public class ApplicationClient
     {
         /// <summary>
-        /// iKnode API Service URL.
+        /// Gets or Sets the iKnode API Service URL.
         /// </summary>
-        private static string ServiceUrl = "https://api.iknode.com";
+        private string ServiceUrl
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or Sets the User Identifier.
@@ -73,11 +77,13 @@ namespace iKnodeSdk
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationClient"/> class.
         /// </summary>
+        /// <param name="serviceUrl">Service URL.</param>
         /// <param name="userId">User Identifier.</param>
         /// <param name="apiKey">API Key.</param>
         /// <param name="applicationName">Application Name.</param>
-        public ApplicationClient(string userId, string apiKey, string applicationName)
+        public ApplicationClient(string serviceUrl, string userId, string apiKey, string applicationName)
         {
+            this.ServiceUrl = serviceUrl;
             this.UserId = userId;
             this.ApiKey = apiKey;
             this.ApplicationName = applicationName;
@@ -90,9 +96,9 @@ namespace iKnodeSdk
         /// <param name="methodName">Method to execute.</param>
         /// <param name="parameters">Parameters to use.</param>
         /// <returns>Result Object.</returns>
-        public T Execute<T>(string methodName,  params MethodParameter[] parameters) where T : class
+        public T Execute<T>(string methodName,  params MethodParameter[] parameters)
         {
-            string result = ExecuteRequest(this.UserId, this.ApiKey, this.ApplicationName, methodName, parameters);
+            string result = ExecuteRequest(this.ServiceUrl, this.UserId, this.ApiKey, this.ApplicationName, methodName, parameters);
 
             T resultObj = JsonConvert.DeserializeObject<T>(result);
 
@@ -105,7 +111,7 @@ namespace iKnodeSdk
         /// <typeparam name="T">Result Type.</typeparam>
         /// <param name="methodName">Method to execute.</param>
         /// <param name="parameters">Parameters to use.</param>
-        public Task<T> ExecuteAsync<T>(Action<T> callback, string methodName,  params MethodParameter[] parameters) where T : class
+        public Task<T> ExecuteAsync<T>(Action<T> callback, string methodName,  params MethodParameter[] parameters)
         {
             Task<T> task = Task.Factory.StartNew<T>(() => this.Execute<T>(methodName, parameters));
 
@@ -119,15 +125,16 @@ namespace iKnodeSdk
         /// <summary>
         /// Executes the method with the selected parameters for the current application.
         /// </summary>
+        /// <param name="serviceUrl">Service URL.</param>
         /// <param name="userId">User Identifier.</param>
         /// <param name="apiKey">API Key.</param>
         /// <param name="appName">Application Name.</param>
         /// <param name="methodName">Method to execute.</param>
         /// <param name="parameters">Parameters to use.</param>
         /// <returns>Result Object.</returns>
-        private static string ExecuteRequest(string userId, string apiKey, string appName, string methodName, params MethodParameter[] parameters)
+        private static string ExecuteRequest(string serviceUrl, string userId, string apiKey, string appName, string methodName, params MethodParameter[] parameters)
         {
-            string appSvcUrl = String.Format("{0}/Applications/execute/{1}/{2}", iKnodeSdk.ApplicationClient.ServiceUrl, appName, methodName);
+            string appSvcUrl = String.Format("{0}/Applications/execute/{1}/{2}", serviceUrl, appName, methodName);
 
             HttpWebRequest request = (HttpWebRequest) WebRequest.Create(appSvcUrl);
             request.Method = "POST";
@@ -176,11 +183,14 @@ namespace iKnodeSdk
             int index = 0;
             int count = parameters.Length;
             foreach(MethodParameter parameter in parameters) {
-                string paramValue = parameter.Value.ToString();
+                string paramValue = String.Empty;
+                if(parameter.Value != null) {
+                    paramValue = parameter.Value.ToString();
 
-                if(!IsPrimitiveType(parameter.Value.GetType())) {
-                    paramValue = JsonConvert.SerializeObject(parameter.Value);
-                    paramValue = paramValue.Replace("\"", "\\\"");
+                    if(!IsPrimitiveType(parameter.Value.GetType())) {
+                        paramValue = JsonConvert.SerializeObject(parameter.Value);
+                        paramValue = paramValue.Replace("\"", "\\\"");
+                    }
                 }
 
                 paramBuilder.AppendFormat(" {0}:'{1}'", parameter.Name, paramValue);

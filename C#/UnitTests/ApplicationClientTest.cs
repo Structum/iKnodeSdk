@@ -27,7 +27,7 @@ namespace iKnodeSdk.UnitTest
         [TestMethod]
         public void Execute_NoParamsTest()
         {
-            ApplicationClient userSvc = new ApplicationClient(UserId, ApiKey, "UserService");
+            ApplicationClient userSvc = new ApplicationClient("https://api.iknode.com", UserId, ApiKey, "UserService");
 
             string result = userSvc.Execute<string>("GetMostCommonFirstName");
 
@@ -40,7 +40,7 @@ namespace iKnodeSdk.UnitTest
         [TestMethod]
         public void Execute_withParamsTest()
         {
-            ApplicationClient userSvc = new ApplicationClient(UserId, ApiKey, "UserService");
+            ApplicationClient userSvc = new ApplicationClient("https://api.iknode.com", UserId, ApiKey, "UserService");
 
             string result = userSvc.Execute<string>("GetFirstNameById", new MethodParameter("id", 1));
 
@@ -53,7 +53,7 @@ namespace iKnodeSdk.UnitTest
         [TestMethod]
         public void Execute_ComplexObject_NoParamsTest()
         {
-            ApplicationClient userSvc = new ApplicationClient(UserId, ApiKey, "UserService");
+            ApplicationClient userSvc = new ApplicationClient("https://api.iknode.com", UserId, ApiKey, "UserService");
 
             User expected = new User(2, new FullName("Jane", "Doe"));
             User actual = userSvc.Execute<User>("CreateDefault");
@@ -71,7 +71,7 @@ namespace iKnodeSdk.UnitTest
         [TestMethod]
         public void Execute_ComplexObject_withParamsTest()
         {
-            ApplicationClient userSvc = new ApplicationClient(UserId, ApiKey, "UserService");
+            ApplicationClient userSvc = new ApplicationClient("https://api.iknode.com", UserId, ApiKey, "UserService");
 
             User expected = new User(1, new FullName("Alex", "Espinoza"));
             User actual = userSvc.Execute<User>("Create", new MethodParameter("id", expected.Id), new MethodParameter("name", expected.Name));
@@ -89,7 +89,7 @@ namespace iKnodeSdk.UnitTest
         [TestMethod]
         public void ExecuteAsync_ComplexObject_withParamsTest()
         {
-            ApplicationClient userSvc = new ApplicationClient(UserId, ApiKey, "UserService");
+            ApplicationClient userSvc = new ApplicationClient("https://api.iknode.com", UserId, ApiKey, "UserService");
 
             User expected = new User(1, new FullName("Alex", "Espinoza"));
             Action<User> callback = (actual) => {

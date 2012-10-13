@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Structum, Inc.")]
 [assembly: AssemblyProduct("iKnodeSDK")]
-[assembly: AssemblyCopyright("Copyright © Structum, Inc.  2012")]
+[assembly: AssemblyCopyright("Copyright © Structum, Inc. 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
