@@ -27,7 +27,7 @@ C# Sample Code:
                               ApiKey,
                               "HelloWorld");
 
-    string response = userSvc.Execute<string>(
+    string response = helloWorldSvc.Execute<string>(
                       "HelloYou",
                       new MethodParameter("yourName", "John Doe"));
 
