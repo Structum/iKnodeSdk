@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("iKnodeSdk")]
-[assembly: AssemblyDescription("iKnode Software Development Kit.")]
+[assembly: AssemblyDescription("iKnode Software Development Kit for .Net.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Structum, Inc.")]
 [assembly: AssemblyProduct("iKnodeSDK")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.0.1")]
+[assembly: AssemblyFileVersion("1.0.0.1")]
