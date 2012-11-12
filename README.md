@@ -14,7 +14,7 @@ Each platform SDK contains its own Unit Tests. In order to run them, you need to
 
 ## iKnode SDK for .NET
 
-You can download the latest version from the Github Downloads section or you can install the latest version using NuGet (https://nuget.org/packages/iKnodeSdk):
+You can download the latest version from the Github Downloads section or you can install the latest version using NuGet ( https://nuget.org/packages/iKnodeSdk ):
 
     PM> Install-Package iKnodeSdk
 
