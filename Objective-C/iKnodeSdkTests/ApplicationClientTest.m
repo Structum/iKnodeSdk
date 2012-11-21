@@ -10,8 +10,8 @@
 #import "ApplicationClient.h"
 
 @implementation ApplicationClientTest
-NSString *const UserId = @"7d08e1e6-d6ea-423b-9531-0b1002359946";
-NSString *const ApiKey = @"87f68825-eb10-42c1-960b-c1c592374a76";
+NSString *const UserId = @"";
+NSString *const ApiKey = @"";
 NSString *const BaseUrl = @"https://api.iknode.com/";
 
 - (void)setUp
