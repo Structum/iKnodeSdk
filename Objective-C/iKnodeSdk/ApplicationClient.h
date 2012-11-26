@@ -18,5 +18,5 @@
 
 - (id) initWithServiceUrl:(NSString *)serviceUrl AndUserId:(NSString *)userId AndApiKey:(NSString *)apiKey AndAppName:(NSString *)appName;
 
-- (NSString *) ExecuteWithMethodName:(NSString *)methodName AndParameters:(NSMutableDictionary *)params;
+- (NSString *) ExecuteWithMethodName:(NSString *)methodName AndParameters:(NSDictionary *)params;
 @end

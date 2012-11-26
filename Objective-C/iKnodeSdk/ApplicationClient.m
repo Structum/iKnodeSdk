@@ -7,6 +7,7 @@
 //
 
 #import "ApplicationClient.h"
+#import "JSONKit.h"
 
 @implementation ApplicationClient
 - (id) initWithServiceUrl:(NSString *)serviceUrl AndUserId:(NSString *)userId AndApiKey:(NSString *)apiKey AndAppName:(NSString *)appName
@@ -27,16 +28,16 @@
     [super dealloc];
 }
 
-- (NSData *) ExecuteWithMethodName:(NSString *)methodName AndParameters:(NSMutableDictionary *)params
+- (NSString *) ExecuteWithMethodName:(NSString *)methodName AndParameters:(NSDictionary *)params
 {
     NSData *body = nil;
     NSString *contentType = @"application/json";
 
     NSURL *appUrl = [NSURL URLWithString:[NSString stringWithFormat:@"%@/Applications/execute/%@/%@", _serviceUrl, _appName, methodName]];
     
-    NSString *paramsJson = @"{ \"parameters\" :\"\" }";
+    NSString *paramsJson = [self FormatParameters:params];
     
-    body = [[NSString stringWithFormat:@"%@", paramsJson] dataUsingEncoding:  NSUTF8StringEncoding];
+	body = [[NSString stringWithFormat:@"%@", paramsJson] dataUsingEncoding:NSUTF8StringEncoding];
     NSString *putLength = [NSString stringWithFormat:@"%d",[body length]];
     
     NSMutableDictionary* headers = [[[NSMutableDictionary alloc] init] autorelease];
@@ -62,7 +63,36 @@
     NSString *data = [[NSString alloc]initWithData:urlData encoding:NSUTF8StringEncoding];
     data = [self CleanResult:data];
 
-    return [self DeserializeParams:data];
+    return data;//[self DeserializeParams:data];
+}
+
+- (NSString *) FormatParameters:(NSDictionary *) paramsDictionary
+{   
+	if(paramsDictionary == nil) {
+		return @"{ \"parameters\" :\"\" }";
+	}
+
+	NSError *error;
+	NSData *jsonData = [NSJSONSerialization dataWithJSONObject:paramsDictionary 
+													   options:0
+														 error:&error];
+
+	if(!jsonData) {
+		NSLog(@"ERROR: %@", error);
+		return @"{ \"parameters\" :\"\" }";
+	}
+
+	NSString *paramsJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+
+	NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\""
+																		   options:NSRegularExpressionCaseInsensitive 
+																			 error:&error];
+
+    NSString *modifiedString = [regex stringByReplacingMatchesInString:paramsJson 
+															   options:0
+																 range:NSMakeRange(0, [paramsJson length]) withTemplate:@"\\\\\""];
+
+	return [NSString stringWithFormat:@"{ \"parameters\" :\"%@\" }", modifiedString];
 }
 
 - (NSString *) CleanResult:(NSString *) result

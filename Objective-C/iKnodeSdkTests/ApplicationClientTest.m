@@ -10,9 +10,6 @@
 #import "ApplicationClient.h"
 
 @implementation ApplicationClientTest
-NSString *const UserId = @"";
-NSString *const ApiKey = @"";
-NSString *const BaseUrl = @"https://api.iknode.com/";
 
 - (void)setUp
 {
@@ -24,7 +21,7 @@ NSString *const BaseUrl = @"https://api.iknode.com/";
     [super tearDown];
 }
 
-- (void)Execute_NoParamsTest
+- (void)testExecute_NoParamsTest
 {
     ApplicationClient *client = [[ApplicationClient alloc] initWithServiceUrl:BaseUrl
                                                                     AndUserId:UserId
@@ -39,18 +36,15 @@ NSString *const BaseUrl = @"https://api.iknode.com/";
                          @"We expected %@, but it was %@",expected,actual);
 }
 
-- (void)Execute_withParamsTest
+- (void)testExecute_withParamsTest
 {
     ApplicationClient *client = [[ApplicationClient alloc] initWithServiceUrl:BaseUrl
                                                                     AndUserId:UserId
                                                                     AndApiKey:ApiKey
                                                                    AndAppName:@"UserService"];
     
-    NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
-    [params setValue:@"2" forKey:@"Id"];
-    [params setValue:@"2" forKey:@"Name"];
-    
-    NSString *actual = [client ExecuteWithMethodName:@"GetMostCommonFirstName" AndParameters:nil];
+    NSDictionary *params = [NSDictionary dictionaryWithObject:@"2" forKey:@"id"];   
+    NSString *actual = [client ExecuteWithMethodName:@"GetFirstNameById" AndParameters:params];
     
     NSString *expected = @"Robert";
     STAssertEqualObjects(expected,
@@ -58,7 +52,7 @@ NSString *const BaseUrl = @"https://api.iknode.com/";
                          @"We expected %@, but it was %@",expected,actual);
 }
 
-- (void)Execute_ComplexObject_NoParamsTest
+/*- (void)Execute_ComplexObject_NoParamsTest
 {
     ApplicationClient *client = [[ApplicationClient alloc] initWithServiceUrl:BaseUrl
                                                                     AndUserId:UserId
@@ -73,11 +67,11 @@ NSString *const BaseUrl = @"https://api.iknode.com/";
     [params setValue:@"1" forKey:@"id"];
     [params setValue:fullName forKey:@"Name"];
     
-    NSMutableDictionary *actual = [client ExecuteWithMethodName:@"CreateDefault" AndParameters:params];
+    //NSMutableDictionary *actual = [client ExecuteWithMethodName:@"CreateDefault" AndParameters:params];
     
-    /*STAssertEqualObjects(expected,
+    STAssertEqualObjects(expected,
                          actual,
-                         @"We expected %@, but it was %@",expected,actual);*/
-}
+                         @"We expected %@, but it was %@",expected,actual);
+}*/
 
 @end

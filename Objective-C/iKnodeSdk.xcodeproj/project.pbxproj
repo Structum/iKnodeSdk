@@ -307,6 +307,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = NO;
 			};
 			name = Debug;
 		};
@@ -326,6 +328,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -398,7 +401,7 @@
 				9E1E26781658818A0049C725 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		9E1E26791658818A0049C725 /* Build configuration list for PBXNativeTarget "iKnodeSdk" */ = {
 			isa = XCConfigurationList;
@@ -407,7 +410,7 @@
 				9E1E267B1658818A0049C725 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		9E1E267C1658818A0049C725 /* Build configuration list for PBXNativeTarget "iKnodeSdkTests" */ = {
 			isa = XCConfigurationList;
@@ -416,7 +419,7 @@
 				9E1E267E1658818A0049C725 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
