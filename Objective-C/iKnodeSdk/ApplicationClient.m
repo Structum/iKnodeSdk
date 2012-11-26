@@ -28,7 +28,7 @@
     [super dealloc];
 }
 
-- (NSString *) ExecuteWithMethodName:(NSString *)methodName AndParameters:(NSDictionary *)params
+- (NSData *) ExecuteWithMethodName:(NSString *)methodName AndParameters:(NSDictionary *)params
 {
     NSData *body = nil;
     NSString *contentType = @"application/json";
@@ -56,14 +56,14 @@
     
     NSError *error;
     NSURLResponse *response;
-    NSData *urlData=[NSURLConnection sendSynchronousRequest:request
-                                          returningResponse:&response
-                                                      error:&error];
+    NSData *urlData = [NSURLConnection sendSynchronousRequest:request
+											returningResponse:&response
+														error:&error];
     
     NSString *data = [[NSString alloc]initWithData:urlData encoding:NSUTF8StringEncoding];
     data = [self CleanResult:data];
 
-    return data;//[self DeserializeParams:data];
+    return [self DeserializeParams:data];
 }
 
 - (NSString *) FormatParameters:(NSDictionary *) paramsDictionary
@@ -84,25 +84,18 @@
 
 	NSString *paramsJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 
-	NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"\""
-																		   options:NSRegularExpressionCaseInsensitive 
-																			 error:&error];
-
-    NSString *modifiedString = [regex stringByReplacingMatchesInString:paramsJson 
-															   options:0
-																 range:NSMakeRange(0, [paramsJson length]) withTemplate:@"\\\\\""];
+	NSString *modifiedString = [self ReplacePattern:@"\"" InText:paramsJson WithReplacement:@"\\\\\""];
 
 	return [NSString stringWithFormat:@"{ \"parameters\" :\"%@\" }", modifiedString];
 }
 
-- (NSString *) CleanResult:(NSString *) result
+- (NSString *) CleanResult:(NSString *)result
 {
-    NSError *error = NULL;
+	
+	NSString *temp = [self ReplacePattern:@"^\"|\"$" InText:result WithReplacement:@""];
+	NSString *cleanString = [self ReplacePattern:@"\\\\\"" InText:temp WithReplacement:@"\""];
 
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^\"|\"$|\\\\\"" options:NSRegularExpressionCaseInsensitive error:&error];
-    NSString *modifiedString = [regex stringByReplacingMatchesInString:result options:0 range:NSMakeRange(0, [result length]) withTemplate:@""];
-
-    return modifiedString;
+    return cleanString;
 }
 
 - (NSData *) DeserializeParams:(NSString *)paramsJson
@@ -110,9 +103,29 @@
     NSData *jsonData = [paramsJson dataUsingEncoding:NSUTF8StringEncoding];
 
     NSError *error;
-    return [NSJSONSerialization JSONObjectWithData:jsonData
-                                           options:NSJSONReadingMutableContainers
-                                             error:&error];
+    NSData *result = [NSJSONSerialization JSONObjectWithData:jsonData
+													 options:kNilOptions
+													   error:&error];
+	if(result) {
+		return result;
+	}
+
+	NSString *cleanString = [self ReplacePattern:@"^\"|\"$" InText:paramsJson WithReplacement:@""];
+	return [cleanString dataUsingEncoding:NSUTF8StringEncoding];
 }
 
+- (NSString *) ReplacePattern:(NSString *)pattern InText:(NSString *)text WithReplacement:(NSString *)replacement
+{
+    NSError *error;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:pattern
+																		   options:NSRegularExpressionCaseInsensitive 
+																			 error:&error];
+
+    NSString *temp = [regex stringByReplacingMatchesInString:text 
+													 options:0 
+													   range:NSMakeRange(0, [text length]) 
+												withTemplate:replacement];
+
+	return temp;
+}
 @end

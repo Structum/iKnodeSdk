@@ -28,9 +28,11 @@
                                                                     AndApiKey:ApiKey
                                                                    AndAppName:@"UserService"];
     
-    NSString *actual = [client ExecuteWithMethodName:@"GetMostCommonFirstName" AndParameters:nil];
+    NSData *data = [client ExecuteWithMethodName:@"GetMostCommonFirstName" AndParameters:nil];
     
+    NSString *actual = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
     NSString *expected = @"John";
+    
     STAssertEqualObjects(expected,
                          actual,
                          @"We expected %@, but it was %@",expected,actual);
@@ -44,34 +46,47 @@
                                                                    AndAppName:@"UserService"];
     
     NSDictionary *params = [NSDictionary dictionaryWithObject:@"2" forKey:@"id"];   
-    NSString *actual = [client ExecuteWithMethodName:@"GetFirstNameById" AndParameters:params];
-    
+    NSData *data = [client ExecuteWithMethodName:@"GetFirstNameById" AndParameters:params];
+
+    NSString *actual = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];    
     NSString *expected = @"Robert";
+    
     STAssertEqualObjects(expected,
                          actual,
                          @"We expected %@, but it was %@",expected,actual);
 }
 
-/*- (void)Execute_ComplexObject_NoParamsTest
+- (void)testExecute_ComplexObject_NoParamsTest
 {
     ApplicationClient *client = [[ApplicationClient alloc] initWithServiceUrl:BaseUrl
                                                                     AndUserId:UserId
                                                                     AndApiKey:ApiKey
                                                                    AndAppName:@"UserService"];
-
-    NSMutableDictionary *fullName = [[[NSMutableDictionary alloc] init] autorelease];
-    [fullName setValue:@"Jane" forKey:@"FirstName"];
-    [fullName setValue:@"Doe" forKey:@"LstName"];
     
-    NSMutableDictionary *params = [[[NSMutableDictionary alloc] init] autorelease];
-    [params setValue:@"1" forKey:@"id"];
-    [params setValue:fullName forKey:@"Name"];
+    NSData *data = [client ExecuteWithMethodName:@"CreateDefault" AndParameters:nil];
     
-    //NSMutableDictionary *actual = [client ExecuteWithMethodName:@"CreateDefault" AndParameters:params];
+    // Expected Values.
+    NSDictionary *fullName = [NSDictionary dictionaryWithObjectsAndKeys:
+                              @"Jane", @"FirstName",
+                              @"Doe", @"LastName",
+                              nil];
+    NSDictionary *expectedDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+                              @2, @"Id",
+                              fullName, @"Name",
+                              nil];
     
-    STAssertEqualObjects(expected,
-                         actual,
-                         @"We expected %@, but it was %@",expected,actual);
-}*/
+    // Tests.
+    NSDictionary *actualDictionary = (NSDictionary *) data;
+    
+    NSString *actual = [actualDictionary objectForKey:@"Id"];
+    NSString *expected = [expectedDictionary objectForKey:@"Id"];
+    STAssertEqualObjects(expected, actual, @"We expected %@, but it was %@",expected, actual);
+    
+    NSDictionary *actualFullName = [actualDictionary objectForKey:@"Name"];
+    NSDictionary *expectedFullName = [expectedDictionary objectForKey:@"Name"];
+    
+    STAssertEqualObjects([expectedFullName objectForKey:@"FirstName"], [actualFullName objectForKey:@"FirstName"], @"");
+    STAssertEqualObjects([expectedFullName objectForKey:@"LastName"], [actualFullName objectForKey:@"LastName"], @"");
+}
 
 @end
