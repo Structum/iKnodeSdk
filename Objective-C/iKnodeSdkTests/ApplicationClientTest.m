@@ -89,4 +89,35 @@
     STAssertEqualObjects([expectedFullName objectForKey:@"LastName"], [actualFullName objectForKey:@"LastName"], @"");
 }
 
+- (void)testExecute_ComplexObject_withParamsTest
+{
+    ApplicationClient *client = [[ApplicationClient alloc] initWithServiceUrl:BaseUrl
+                                                                    AndUserId:UserId
+                                                                    AndApiKey:ApiKey
+                                                                   AndAppName:@"UserService"];
+
+    NSDictionary *fullName = [NSDictionary dictionaryWithObjectsAndKeys:
+                              @"Espinoza", @"FirstName",
+                              @"Alex", @"LastName",
+                              nil];
+    NSDictionary *expectedDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+                                        @1, @"id",
+                                        fullName, @"name",
+                                        nil];
+    
+    NSData *data = [client ExecuteWithMethodName:@"Create" AndParameters:expectedDictionary];
+    
+    // Tests.
+    NSDictionary *actualDictionary = (NSDictionary *) data;
+    
+    NSString *actual = [actualDictionary objectForKey:@"Id"];
+    NSString *expected = [expectedDictionary objectForKey:@"id"];
+    STAssertEqualObjects(expected, actual, @"We expected %@, but it was %@",expected, actual);
+    
+    NSDictionary *actualFullName = [actualDictionary objectForKey:@"Name"];
+    NSDictionary *expectedFullName = [expectedDictionary objectForKey:@"name"];
+    
+    STAssertEqualObjects([expectedFullName objectForKey:@"FirstName"], [actualFullName objectForKey:@"FirstName"], @"");
+    STAssertEqualObjects([expectedFullName objectForKey:@"LastName"], [actualFullName objectForKey:@"LastName"], @"");
+}
 @end

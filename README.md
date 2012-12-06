@@ -2,11 +2,12 @@
 
 The iKnode Software DEvelopment Kit (SDK) provides libraries and tools that developers can use to create applications that use the iKnode Backend Cloud Platform.
 
-## Suported Languages/PLatforms
+## Suported Languages/Platforms
 
+* Objective-C
+* Android (Java)
 * .Net
 * Javascript 
-* Android (Java)
 
 ## Running the Unit tests
 

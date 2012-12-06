@@ -16,7 +16,6 @@
 		9E1E266D1658818A0049C725 /* libiKnodeSdk.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E1E26541658818A0049C725 /* libiKnodeSdk.a */; };
 		9E1E26731658818A0049C725 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9E1E26711658818A0049C725 /* InfoPlist.strings */; };
 		9E1E26761658818A0049C725 /* ApplicationClientTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E1E26751658818A0049C725 /* ApplicationClientTest.m */; };
-		9E1E2685165886110049C725 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E1E2684165886110049C725 /* JSONKit.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,8 +54,6 @@
 		9E1E26721658818A0049C725 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		9E1E26741658818A0049C725 /* ApplicationClientTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ApplicationClientTest.h; sourceTree = "<group>"; };
 		9E1E26751658818A0049C725 /* ApplicationClientTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ApplicationClientTest.m; sourceTree = "<group>"; };
-		9E1E2683165886110049C725 /* JSONKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONKit.h; sourceTree = "<group>"; };
-		9E1E2684165886110049C725 /* JSONKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONKit.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,8 +111,6 @@
 		9E1E26591658818A0049C725 /* iKnodeSdk */ = {
 			isa = PBXGroup;
 			children = (
-				9E1E2683165886110049C725 /* JSONKit.h */,
-				9E1E2684165886110049C725 /* JSONKit.m */,
 				9E1E265C1658818A0049C725 /* ApplicationClient.h */,
 				9E1E265E1658818A0049C725 /* ApplicationClient.m */,
 				9E1E265A1658818A0049C725 /* Supporting Files */,
@@ -249,7 +244,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9E1E265F1658818A0049C725 /* ApplicationClient.m in Sources */,
-				9E1E2685165886110049C725 /* JSONKit.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

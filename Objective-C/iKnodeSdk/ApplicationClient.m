@@ -7,7 +7,6 @@
 //
 
 #import "ApplicationClient.h"
-#import "JSONKit.h"
 
 @implementation ApplicationClient
 - (id) initWithServiceUrl:(NSString *)serviceUrl AndUserId:(NSString *)userId AndApiKey:(NSString *)apiKey AndAppName:(NSString *)appName
@@ -35,9 +34,9 @@
 
     NSURL *appUrl = [NSURL URLWithString:[NSString stringWithFormat:@"%@/Applications/execute/%@/%@", _serviceUrl, _appName, methodName]];
     
-    NSString *paramsJson = [self FormatParameters:params];
+	NSString *paramsJson = [self FormatParameters:params];
     
-	body = [[NSString stringWithFormat:@"%@", paramsJson] dataUsingEncoding:NSUTF8StringEncoding];
+	body = [paramsJson dataUsingEncoding:NSUTF8StringEncoding];
     NSString *putLength = [NSString stringWithFormat:@"%d",[body length]];
     
     NSMutableDictionary* headers = [[[NSMutableDictionary alloc] init] autorelease];
@@ -59,6 +58,9 @@
     NSData *urlData = [NSURLConnection sendSynchronousRequest:request
 											returningResponse:&response
 														error:&error];
+    if(!urlData) {
+        NSLog(@"%@", error);
+    }
     
     NSString *data = [[NSString alloc]initWithData:urlData encoding:NSUTF8StringEncoding];
     data = [self CleanResult:data];
@@ -67,26 +69,53 @@
 }
 
 - (NSString *) FormatParameters:(NSDictionary *) paramsDictionary
-{   
+{
 	if(paramsDictionary == nil) {
 		return @"{ \"parameters\" :\"\" }";
 	}
 
 	NSError *error;
-	NSData *jsonData = [NSJSONSerialization dataWithJSONObject:paramsDictionary 
-													   options:0
-														 error:&error];
+	NSMutableString *paramsJson = [[[NSMutableString alloc] initWithString:@"{ \"parameters\" :\"{"] autorelease];
+    
+	int index = 0;
+	int count = [paramsDictionary count];
+	for(NSString* key in paramsDictionary) {
+		id value = [paramsDictionary objectForKey:key];
+		
+		if(value == nil) {
+			continue;
+		}
 
-	if(!jsonData) {
-		NSLog(@"ERROR: %@", error);
-		return @"{ \"parameters\" :\"\" }";
+        NSString *paramValue;
+        
+        if (![self IsPrimitiveType:value]) {
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:value options:0 error:&error];
+            
+            if(!jsonData) {
+                NSLog(@"ERROR: %@", error);
+            }
+            
+            NSString *temp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+			paramValue = [self ReplacePattern:@"\"" InText:temp WithReplacement:@"\\\\\""];
+        } else {
+            paramValue = [NSString stringWithFormat: @"%@", (NSString *)value];
+        }
+
+		[paramsJson appendString:[NSString stringWithFormat: @" %@:'%@'", key, paramValue]];
+
+		if(++index < count) {
+			[paramsJson appendString:@","];
+		}
 	}
 
-	NSString *paramsJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+	[paramsJson appendString:@"}\" }"];
 
-	NSString *modifiedString = [self ReplacePattern:@"\"" InText:paramsJson WithReplacement:@"\\\\\""];
+	return [NSString stringWithString:paramsJson];
+}
 
-	return [NSString stringWithFormat:@"{ \"parameters\" :\"%@\" }", modifiedString];
+- (BOOL) IsPrimitiveType:(id)obj
+{
+    return ![obj isKindOfClass:[NSDictionary class]];
 }
 
 - (NSString *) CleanResult:(NSString *)result

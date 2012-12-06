@@ -10,7 +10,7 @@
 
 NSString *const UserId = @"";
 NSString *const ApiKey = @"";
-NSString *const BaseUrl = @"https://api.iknode.com/";
+NSString *const BaseUrl = @"https://api.iknode.com";
 
 @interface ApplicationClientTest : SenTestCase
 @end
