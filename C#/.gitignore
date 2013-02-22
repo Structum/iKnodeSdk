@@ -1,0 +1,12 @@
+TestResults
+bin
+obj
+Debug
+Release
+packages
+
+*.user
+*.suo
+
+
+
