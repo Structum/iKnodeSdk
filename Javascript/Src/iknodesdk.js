@@ -113,8 +113,11 @@ iKnodeSdk.ApplicationClient._formatParameters = function(parameters) {
 
         if(!iKnodeSdk.isPrimitiveType(paramValue)) {
             paramValue = JSON.stringify(paramValue);
-            paramValue = paramValue.replace(/"/g, "\\\"");
-        }
+			paramValue = paramValue.replace(/"/g, "\\\"");
+        } else if(iKnodeSdk.isString(paramValue)) {
+			paramValue = paramValue.replace(/"/g, "\\\"");
+			paramValue = paramValue.replace(/'/g, "\\\'");
+		}
 
 		formattedParams += " "+parameter.name+":'"+paramValue+"'";
 
@@ -176,4 +179,8 @@ iKnodeSdk.isPrimitiveType = function(variable) {
 	var isFunction = (varAsString == '[object Function]');
 
 	return !(isArray || isObject || isFunction);
+};
+
+iKnodeSdk.isString = function (obj) {
+  return Object.prototype.toString.call(obj) == '[object String]';
 };
