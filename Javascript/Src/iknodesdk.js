@@ -86,7 +86,9 @@ iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKe
  * @return {Object} Deserialized Object.
  */
 iKnodeSdk.ApplicationClient._deserializeObject = function(object) {
-	return eval("(" + iKnodeSdk.ApplicationClient._cleanResult(object) + ")");
+	var result = iKnodeSdk.ApplicationClient._cleanResult(object);
+
+	return (iKnodeSdk.isJson(result) ? JSON.parse(result) : result);
 };
 
 /**
@@ -95,7 +97,11 @@ iKnodeSdk.ApplicationClient._deserializeObject = function(object) {
  * @return {String} Clean Result String.
  */
 iKnodeSdk.ApplicationClient._cleanResult = function(result) {
-	return result.trim().replace(/^"|"$/g, "").replace(/\\\"/g, '"');
+	return result.trim().replace('<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">', "")
+	                    .replace("</string>", "")
+						.replace(/^"|"$/g, "")
+						.replace('""', "")
+						.replace(/\\\"/g, '"');
 };
 
 /**
@@ -181,6 +187,22 @@ iKnodeSdk.isPrimitiveType = function(variable) {
 	return !(isArray || isObject || isFunction);
 };
 
+/**
+ * Returns true if the selected Object is a string.
+ * @param {Object} object Object to validate.
+ * @return {Boolean} True if the object is a string, false otherwise.
+ */
 iKnodeSdk.isString = function (obj) {
   return Object.prototype.toString.call(obj) == '[object String]';
+};
+
+/**
+ * Returns true if the selected Object is json.
+ * @param {Object} object Object to validate.
+ * @return {Boolean} True if the object is json, false otherwise.
+ */
+iKnodeSdk.isJson = function(obj) {
+	return (/^[\],:{}\s]*$/.test(obj.replace(/\\["\\\/bfnrtu]/g, '@')
+								    .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
+									.replace(/(?:^|:|,)(?:\s*\[)+/g, '')));
 };
