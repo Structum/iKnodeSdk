@@ -109,6 +109,7 @@ namespace iKnodeSdk
         /// Executes the method with the selected parameters for the current application.
         /// </summary>
         /// <typeparam name="T">Result Type.</typeparam>
+        /// <param name="callback">Callback Method.</param>
         /// <param name="methodName">Method to execute.</param>
         /// <param name="parameters">Parameters to use.</param>
         public Task<T> ExecuteAsync<T>(Action<T> callback, string methodName,  params MethodParameter[] parameters)
