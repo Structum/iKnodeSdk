@@ -14,28 +14,33 @@ namespace iKnodeSdk
     /// <example>
     /// The following shows you how to use the Client with <b>Sync</b> methods:
     /// <code>
-    /// ApplicationClient appClient = new ApplicationClient("https://api.iknode.com", myUserId, myApiKey, "MyApplication");
+    /// ApplicationClient appClient = new ApplicationClient(myUserId, myApiKey, "MyApplication");
     ///
     /// // Call the Execute Method.
-    /// string result = appClient.Execute<string>("MyMethod", new MethodParameter("Param1", "Param1Value"),  new MethodParameter("Param2", "Param2Value"));
+    /// string result = appClient.Execute&lt;string&gt;("MyMethod", new MethodParameter("Param1", "Param1Value"),  new MethodParameter("Param2", "Param2Value"));
     /// </code>
     /// <br />
     /// The following shows you how to use the Client with <b>Asnyc</b> methods:
     /// <code>
-    /// ApplicationClient appClient = new ApplicationClient("https://api.iknode.com", myUserId, myApiKey, "MyApplication");
+    /// ApplicationClient appClient = new ApplicationClient(myUserId, myApiKey, "MyApplication");
     /// 
     /// // Create the Callback.
-    /// Action<string> callback = (result) => {
+    /// Action&lt;string&gt; callback = (result) => {
     ///     Console.WriteLine(result);
     /// };
     ///
     /// // Call the Execute Async Method.
-    /// Task<string> task = appClient.ExecuteAsync<string>(callback, "MyMethod", new MethodParameter("Param1", "Param1Value"),  new MethodParameter("Param2", "Param2Value"));
+    /// Task&lt;string&gt; task = appClient.ExecuteAsync&lt;string&gt;(callback, "MyMethod", new MethodParameter("Param1", "Param1Value"),  new MethodParameter("Param2", "Param2Value"));
     /// task.Wait();
     /// </code>
     /// </example>
     public class ApplicationClient
     {
+        /// <summary>
+        /// API URL.
+        /// </summary>
+        private const string ApiUrl = "https://api.iknode.com";
+
         /// <summary>
         /// Gets or Sets the iKnode API Service URL.
         /// </summary>
@@ -90,6 +95,16 @@ namespace iKnodeSdk
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationClient"/> class.
+        /// </summary>
+        /// <param name="userId">User Identifier.</param>
+        /// <param name="apiKey">API Key.</param>
+        /// <param name="applicationName">Application Name.</param>
+        public ApplicationClient(string userId, string apiKey, string applicationName) : this(ApiUrl, userId, apiKey, applicationName)
+        {
+        }
+
+        /// <summary>
         /// Executes the method with the selected parameters for the current application.
         /// </summary>
         /// <typeparam name="T">Result Type.</typeparam>
@@ -99,6 +114,11 @@ namespace iKnodeSdk
         public T Execute<T>(string methodName,  params MethodParameter[] parameters)
         {
             string result = ExecuteRequest(this.ServiceUrl, this.UserId, this.ApiKey, this.ApplicationName, methodName, parameters);
+
+            var trimmedResult = result.Trim();
+            if (!trimmedResult.StartsWith("{") && !trimmedResult.StartsWith("[")) {
+                return (T) Convert.ChangeType(result, typeof(T));
+            }
 
             T resultObj = JsonConvert.DeserializeObject<T>(result);
 
@@ -114,7 +134,7 @@ namespace iKnodeSdk
         /// <param name="parameters">Parameters to use.</param>
         public Task<T> ExecuteAsync<T>(Action<T> callback, string methodName,  params MethodParameter[] parameters)
         {
-            Task<T> task = Task.Factory.StartNew<T>(() => this.Execute<T>(methodName, parameters));
+            Task<T> task = Task.Factory.StartNew(() => this.Execute<T>(methodName, parameters));
 
             if(callback != null) {
                 task.ContinueWith((antecendent => callback(antecendent.Result)));
@@ -135,12 +155,11 @@ namespace iKnodeSdk
         /// <returns>Result Object.</returns>
         private static string ExecuteRequest(string serviceUrl, string userId, string apiKey, string appName, string methodName, params MethodParameter[] parameters)
         {
-            string appSvcUrl = String.Format("{0}/Applications/execute/{1}/{2}", serviceUrl, appName, methodName);
+            string appSvcUrl = String.Format("{0}/v3/{1}/{2}/{3}", serviceUrl, userId, appName, methodName);
 
             HttpWebRequest request = (HttpWebRequest) WebRequest.Create(appSvcUrl);
             request.Method = "POST";
             request.ContentType = "application/json";
-            request.Headers.Add("iKnode-UserId", userId);
             request.Headers.Add("iKnode-ApiKey", apiKey);
 
             string requestBody = FormatParameters(parameters);
@@ -152,8 +171,12 @@ namespace iKnodeSdk
 
             HttpWebResponse response = (HttpWebResponse) request.GetResponse();
 
-            string result = new StreamReader(response.GetResponseStream()).ReadToEnd();
+            var responseStream = response.GetResponseStream();
+            if (responseStream == null) {
+                return String.Empty;
+            }
 
+            string result = new StreamReader(responseStream).ReadToEnd();
             return CleanResult(result);
         }
 
@@ -179,29 +202,28 @@ namespace iKnodeSdk
         {
             StringBuilder paramBuilder = new StringBuilder();
 
-            paramBuilder.Append("{ \"parameters\": \"{");
+            paramBuilder.Append("{");
 
             int index = 0;
             int count = parameters.Length;
             foreach(MethodParameter parameter in parameters) {
                 string paramValue = String.Empty;
                 if(parameter.Value != null) {
-                    paramValue = parameter.Value.ToString();
 
+                    paramValue = parameter.Value.ToString();
                     if(!IsPrimitiveType(parameter.Value.GetType())) {
                         paramValue = JsonConvert.SerializeObject(parameter.Value);
-                        paramValue = paramValue.Replace("\"", "\\\"");
                     }
                 }
 
-                paramBuilder.AppendFormat(" {0}:'{1}'", parameter.Name, paramValue);
+                paramBuilder.AppendFormat(" \"{0}\":{1}", parameter.Name, paramValue);
                 
                 if(++index < count) {
                     paramBuilder.Append(",");
                 }
             }
 
-            paramBuilder.Append("}\" }");
+            paramBuilder.Append("}");
 
             return paramBuilder.ToString();
         }

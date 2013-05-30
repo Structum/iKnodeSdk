@@ -50,7 +50,9 @@ iKnodeSdk.ApplicationClient.prototype.executeAsync = function(config) {
  * @param {Function} callback Callback Function (Optional).
  */
 iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKey, appName, methodName, parameters, callback) {
-	var appSvcUrl = serviceUrl + "/Applications/execute/"+appName+"/"+methodName;
+	var appSvcUrl = serviceUrl + "/v3/" + userId + "/" + appName + "/" + methodName;
+
+	var params = iKnodeSdk.ApplicationClient._formatParameters(parameters);
 
 	var request = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
 
@@ -58,18 +60,20 @@ iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKe
 
     request.open("POST", appSvcUrl, isAsync);
     request.setRequestHeader("Content-Type", "application/json");
-    request.setRequestHeader("iKnode-UserId", userId);
-    request.setRequestHeader("iKnode-ApiKey", apiKey);
+
+	if(!iKnodeSdk.isNull(apiKey) && apiKey != "") {
+		request.setRequestHeader("iKnode-ApiKey", apiKey);
+	}
 
     if (isAsync) {
         request.onreadystatechange = function () {
             if (request.readyState === 4 && request.status === 200) {
-                callback(iKnodeSdk.ApplicationClient._deserializeObject(request.responseText));
+				callback(iKnodeSdk.ApplicationClient._deserializeObject(request.responseText), request);
             }
         };
     }
 
-	var formattedParams = iKnodeSdk.ApplicationClient._formatParameters(parameters);
+	var formattedParams = JSON.stringify(params);
 
     request.send(formattedParams);
 
@@ -110,31 +114,27 @@ iKnodeSdk.ApplicationClient._cleanResult = function(result) {
  * @return Formatted Parameter String.
  */
 iKnodeSdk.ApplicationClient._formatParameters = function(parameters) {
-	var formattedParams = "{ \"parameters\": \"{";
-
+	var params = "{";
 	var count = (iKnodeSdk.isNull(parameters) ? 0 : parameters.length);
 	for(var index = 0; index < count; index++) {
 		var parameter = parameters[index];
-		var paramValue = parameter.value;
+		var fieldName = parameter.name;
+		var fieldValue = parameter.value;
 
-        if(!iKnodeSdk.isPrimitiveType(paramValue)) {
-            paramValue = JSON.stringify(paramValue);
-			paramValue = paramValue.replace(/"/g, "\\\"");
-        } else if(iKnodeSdk.isString(paramValue)) {
-			paramValue = paramValue.replace(/"/g, "\\\"");
-			paramValue = paramValue.replace(/'/g, "\\\'");
-		}
+		if(!iKnodeSdk.isPrimitiveType(fieldValue)) {
+            fieldValue = JSON.stringify(fieldValue);
+        }
 
-		formattedParams += " "+parameter.name+":'"+paramValue+"'";
+		params += "\""+fieldName+"\": "+fieldValue;
 
-        if(index + 1 < count) {
-			formattedParams += ",";
+		if(index+1 < count) {
+			params += ",";
 		}
 	}
 
-    formattedParams += "}\" }";
+    params += "}";
 
-	return formattedParams;
+	return JSON.parse(params);
 };
 
 /**
@@ -202,6 +202,10 @@ iKnodeSdk.isString = function (obj) {
  * @return {Boolean} True if the object is json, false otherwise.
  */
 iKnodeSdk.isJson = function(obj) {
+	if(obj == "") {
+		return false;
+	}
+
 	return (/^[\],:{}\s]*$/.test(obj.replace(/\\["\\\/bfnrtu]/g, '@')
 								    .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
 									.replace(/(?:^|:|,)(?:\s*\[)+/g, '')));
