@@ -26,7 +26,11 @@ iKnodeSdk.ApplicationClient = function(config) {
 iKnodeSdk.ApplicationClient.prototype.execute = function(config) {
 	iKnodeSdk.validateConfigProperty(config, "methodName");
 
-	return iKnodeSdk.ApplicationClient._executeRequest(this._serviceUrl, this._userId, this._apiKey, this._appName, config.methodName, config.parameters);
+	if(!config.hasOwnProperty("formatParameters")) {
+		config.formatParameters = false;
+	}
+
+	return iKnodeSdk.ApplicationClient._executeRequest(this._serviceUrl, this._userId, this._apiKey, this._appName, config.methodName, config.parameters, config.formatParameters);
 };
 
 /**
@@ -36,7 +40,11 @@ iKnodeSdk.ApplicationClient.prototype.execute = function(config) {
 iKnodeSdk.ApplicationClient.prototype.executeAsync = function(config) {
 	iKnodeSdk.validateConfigProperty(config, "methodName");
 
-	iKnodeSdk.ApplicationClient._executeRequest(this._serviceUrl, this._userId, this._apiKey, this._appName, config.methodName, config.parameters, config.callback);
+	if(!config.hasOwnProperty("formatParameters")) {
+		config.formatParameters = false;
+	}
+
+	iKnodeSdk.ApplicationClient._executeRequest(this._serviceUrl, this._userId, this._apiKey, this._appName, config.methodName, config.parameters, config.formatParameters, config.callback);
 };
 
 /**
@@ -46,13 +54,17 @@ iKnodeSdk.ApplicationClient.prototype.executeAsync = function(config) {
  * @param {String} apiKey API Key.
  * @param {String} appName Application Name.
  * @param {String} methodName Method Name.
- * @param {Array} parameters Parameters Array.
+ * @param {Object} parameters Parameters Array.
+ * @param {Boolean} formatParameters True to format parameters from the old Array to Object, false otherwise.
  * @param {Function} callback Callback Function (Optional).
  */
-iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKey, appName, methodName, parameters, callback) {
+iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKey, appName, methodName, parameters, formatParameters, callback) {
 	var appSvcUrl = serviceUrl + "/v3/" + userId + "/" + appName + "/" + methodName;
 
-	var params = iKnodeSdk.ApplicationClient._formatParameters(parameters);
+	var params = parameters;
+	if(formatParameters) {
+		params = iKnodeSdk.ApplicationClient._formatParameters(params);
+	}
 
 	var request = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
 
@@ -121,9 +133,7 @@ iKnodeSdk.ApplicationClient._formatParameters = function(parameters) {
 		var fieldName = parameter.name;
 		var fieldValue = parameter.value;
 
-		if(!iKnodeSdk.isPrimitiveType(fieldValue)) {
-            fieldValue = JSON.stringify(fieldValue);
-        }
+		fieldValue = JSON.stringify(fieldValue);
 
 		params += "\""+fieldName+"\": "+fieldValue;
 
