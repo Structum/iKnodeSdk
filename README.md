@@ -23,7 +23,6 @@ C# Sample Code:
 
     // Creating User Id 1 with Name jdoe.
     ApplicationClient helloWorldSvc = new ApplicationClient(
-                              "https://api.iknode.com",
                               UserId,
                               ApiKey,
                               "HelloWorld");
@@ -42,8 +41,7 @@ C# Sample Code:
 
     var response = helloWorldSvc.execute({
         methodName: "HelloYou",
-        parameters: [{
-            name: "yourName",
-            value: "John Doe"
-        }]
+        parameters: {
+            yourName: "John Doe"
+        }
     });
