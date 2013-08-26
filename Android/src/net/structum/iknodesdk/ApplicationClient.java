@@ -1,11 +1,5 @@
 package net.structum.iknodesdk;
 
-import net.structum.iknodesdk.ApplicationClient;
-import net.structum.iknodesdk.Callback;
-import net.structum.iknodesdk.MethodParameter;
-import net.structum.iknodesdk.Task;
-import net.structum.iknodesdk.iKnodeClientException;
-
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -31,7 +25,7 @@ public final class ApplicationClient {
 	 * 
 	 * @since 0.1
 	 */
-	private static final String SERVICE_URL = "https://api.iknode.com";
+	private static final String SERVICE_URL = "https://api.iknode.com/v3/%s/%s/%s";
 	
 	/**
 	 * User Id.
@@ -164,13 +158,12 @@ public final class ApplicationClient {
 		OutputStream requestStream = null;
 		InputStream responseStream = null;
 		
-		final String appServiceUrl = String.format("%s/Applications/execute/%s/%s", SERVICE_URL, applicationName, methodName);
+		final String appServiceUrl = String.format(SERVICE_URL, userId, applicationName, methodName);
 		
 		connection = this.getRequestUrlConnection(appServiceUrl);
 		
 		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Type", "application/json");
-		connection.addRequestProperty("iKnode-UserId", userId);
 		connection.addRequestProperty("iKnode-ApiKey", apiKey);
 		
 		// Make the request...
@@ -261,25 +254,24 @@ public final class ApplicationClient {
 	{
 		StringBuffer params = new StringBuffer();
 		
-		params.append("{ \"parameters\": \"{");
+		params.append("{");
 
         int index = 0;
         int count = parameters.length;
         
         for(MethodParameter parameter : parameters) {
-            String paramValue = parameter.getValue().toString();
+            final String paramName = parameter.getName();
 
-            paramValue = new Gson().toJson(parameter.getValue());
-            paramValue = paramValue.replace("\"", "\\\"");
+            String paramValue = new Gson().toJson(parameter.getValue()).replace("\"", "\\\"");
 
-            params.append(String.format(" %s:'%s'", parameter.getName(), paramValue));
+            params.append(String.format(" '%s':'%s'", paramName, paramValue));
             
             if(++index < count) {
                 params.append(",");
             }
         }
 
-        params.append("}\" }");
+        params.append("}");
 
         return params.toString();		
 	}	
