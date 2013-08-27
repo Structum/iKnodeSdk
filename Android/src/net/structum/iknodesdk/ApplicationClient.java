@@ -70,13 +70,15 @@ public final class ApplicationClient {
 	 * @param resultType Result type expected.
 	 * @param methodName Method Name.
 	 * @param parameters Variable Parameters to use.
+     *
 	 * @return Execution result object.
+     *
 	 * @throws iKnodeClientException Thrown when a connection, request or response error raises.
 	 * 
 	 * @since 0.1
 	 */
 	public <T> T execute(final Type resultType, final String methodName, final MethodParameter... parameters)
-			throws iKnodeClientException 
+			throws iKnodeClientException, Exception
 	{
 		T responseObject;
 		
@@ -91,7 +93,9 @@ public final class ApplicationClient {
 			throw new iKnodeClientException("Illegal state exception raised, perhaps the connection is in fauled state or already opened.", isex);
 		} catch(final IOException ioex) {
 			throw new iKnodeClientException("An I/O error ocurred when trying to either write the request or read the server response.", ioex);
-		}
+		} catch (final Exception ex) {
+            throw ex;
+        }
 
 		return responseObject;
 	}
@@ -102,6 +106,7 @@ public final class ApplicationClient {
 	 * @param resultType Result type expected.
 	 * @param callback Callback method to execute after getting the response.
 	 * @param parameters Variable Parameters to use.
+     *
 	 * @return Execution result object.
 	 * 
 	 * @since 0.1
@@ -114,10 +119,9 @@ public final class ApplicationClient {
 				
 				try {
 					result = ApplicationClient.this.execute(resultType, methodName, parameters);					
-				} catch(final iKnodeClientException icex) {
-					// Not much to do here...
-					result = null;
-				}
+				} catch (final Exception ex) {
+                    result = null;
+                }
 				
 				if(callback != null) {
 					callback.setResult(result);
@@ -137,6 +141,7 @@ public final class ApplicationClient {
 	 * @param applicationName Application Name.
 	 * @param methodName Method to execute.
 	 * @param parameters Variable parameters to use.
+     *
 	 * @return Execution result object.
 	 * 
 	 * @throws IOException Thrown if either the connection or streams cannot be closed.
@@ -180,15 +185,23 @@ public final class ApplicationClient {
 		while((line = bufferedStream.readLine()) != null) {
 			responseBuffr.append(line);
 		}
-		
-		return cleanResult(responseBuffr.toString());			
+
+        final String responseText = responseBuffr.toString();
+
+        if (responseText.length() == 0) {
+            return "";
+        }
+
+        return cleanResult (responseBuffr.substring(1));
 	}
 	
 	/**
 	 * Gets the connection to the Service Url.
 	 * 
 	 * @param appServiceUrl Service Url.
+     *
 	 * @return {@link HttpURLConnection} instance.
+     *
 	 * @throws Exception
 	 *  
 	 * @since 0.1
@@ -221,24 +234,18 @@ public final class ApplicationClient {
 	 * Cleans the execution result string.
 	 * 
 	 * @param result Result string
-	 * @return Cleaned result string
+	 *
+     * @return Cleaned result string
 	 * 
 	 * @since 0.1
 	 */
 	private String cleanResult(String result)
 	{
-		if(result.startsWith("<string")) {
-			if(result.endsWith("</string>")) {
-				result = result.replace("<string xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\">", "");
-				result = result.replace("</string>", "");		
-			} else {
-				result = result.replace("<string xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\" />", "");
-			}			
-		}
-		
 		result = result.replaceAll("^\"|\"$", "");
 		result = result.replaceAll("\\\\\"", "\"");
-		
+        result = result.replaceAll("\\\\n", "");
+        result = result.replaceAll("\\\\r", "");
+
 		return result;
 	}
 	
@@ -246,6 +253,7 @@ public final class ApplicationClient {
 	 * Formats the parameter array to be used for the JSON REST Command.
 	 *  
 	 * @param parameters Parameters array.
+     *
 	 * @return Formatted parameters string.
 	 * 
 	 * @since 0.1
@@ -261,8 +269,7 @@ public final class ApplicationClient {
         
         for(MethodParameter parameter : parameters) {
             final String paramName = parameter.getName();
-
-            String paramValue = new Gson().toJson(parameter.getValue()).replace("\"", "\\\"");
+            final String paramValue = parameter.getValue().toString();
 
             params.append(String.format(" '%s':'%s'", paramName, paramValue));
             
@@ -273,6 +280,6 @@ public final class ApplicationClient {
 
         params.append("}");
 
-        return params.toString();		
+        return params.toString();
 	}	
 }
