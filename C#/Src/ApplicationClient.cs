@@ -39,7 +39,7 @@ namespace iKnodeSdk
         /// <summary>
         /// API URL.
         /// </summary>
-        private const string ApiUrl = "https://api.iknode.com";
+        private const string ApiUrl = "http://localhost:4443/";
 
         /// <summary>
         /// Gets or Sets the iKnode API Service URL.
@@ -116,7 +116,7 @@ namespace iKnodeSdk
             string result = ExecuteRequest(this.ServiceUrl, this.UserId, this.ApiKey, this.ApplicationName, methodName, parameters);
 
             var trimmedResult = result.Trim();
-            if (!trimmedResult.StartsWith("{") && !trimmedResult.StartsWith("[")) {
+            if ((!trimmedResult.StartsWith("{") && !trimmedResult.StartsWith("[")) || typeof(T) == typeof(string)) {
                 return (T) Convert.ChangeType(result, typeof(T));
             }
 
@@ -211,8 +211,10 @@ namespace iKnodeSdk
                 if(parameter.Value != null) {
 
                     paramValue = parameter.Value.ToString();
-                    if(!IsPrimitiveType(parameter.Value.GetType())) {
+                    if (!IsPrimitiveType(parameter.Value.GetType())) {
                         paramValue = JsonConvert.SerializeObject(parameter.Value);
+                    } else {
+                        paramValue = String.Format("\"{0}\"", paramValue);
                     }
                 }
 
