@@ -39,7 +39,7 @@ namespace iKnodeSdk
         /// <summary>
         /// API URL.
         /// </summary>
-        private const string ApiUrl = "https://api.iknode.com/";
+        private const string ApiUrl = "http://localhost:4443/";//"https://api.iknode.com/";
 
         /// <summary>
         /// Gets or Sets the iKnode API Service URL.
@@ -210,9 +210,9 @@ namespace iKnodeSdk
                 string paramValue = String.Empty;
                 if(parameter.Value != null) {
                     paramValue = parameter.Value.ToString();
-                    paramValue = !IsPrimitiveType(parameter.Value.GetType()) 
+                    paramValue = !SerializationHelper.IsPrimitiveType(parameter.Value.GetType()) 
                                  ? JsonConvert.SerializeObject(parameter.Value) 
-                                 : (IsNumericType(parameter.Value.GetType(), parameter.Value.ToString()) 
+                                 : (SerializationHelper.IsNumericType(parameter.Value.GetType(), parameter.Value.ToString()) 
                                    ? String.Format("{0}", paramValue) 
                                    : String.Format("\"{0}\"", paramValue));
                 }
@@ -227,36 +227,6 @@ namespace iKnodeSdk
             paramBuilder.Append("}");
 
             return paramBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if the type is a primitive type, false otherwise.
-        /// </summary>
-        /// <param name="type">Type to check.</param>
-        /// <returns>True if the type is a primitive type, false otherwise.</returns>
-        private static bool IsPrimitiveType(Type type)
-        {
-            return Type.GetTypeCode(type) != TypeCode.Object;
-        }
-
-        /// <summary>
-        /// Returns true if the type is a numeric type, false otherwise.
-        /// </summary>
-        /// <param name="type">Type to Check.</param>
-        /// <param name="textValue">Text Value.</param>
-        /// <returns>True if the type is a numeric type, false otherwise.</returns>
-        private static bool IsNumericType(Type type, string textValue)
-        {
-            var typeCode = Type.GetTypeCode(type);
-
-            if (typeCode == TypeCode.String) {
-                double temp;
-                return double.TryParse(textValue, out temp);
-            }
-
-            return typeCode == TypeCode.Int16 || typeCode == TypeCode.Int32 || typeCode == TypeCode.Int64 ||
-                   typeCode == TypeCode.Decimal || typeCode == TypeCode.Double || typeCode == TypeCode.Single ||
-                   typeCode == TypeCode.UInt16 || typeCode == TypeCode.UInt32 || typeCode == TypeCode.UInt64;
         }
     }
 }

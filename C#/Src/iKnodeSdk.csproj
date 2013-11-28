@@ -55,6 +55,7 @@
     <Compile Include="ApplicationClient.cs" />
     <Compile Include="MethodParameter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerializationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\iKnode\SignKey\iKnode.pfx">

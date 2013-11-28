@@ -48,9 +48,7 @@ namespace iKnodeSdk
         public MethodParameter(string name, string value, string valueType)
 		{
 			this.Name = name;
-			this.Value = value;
-
-            this.Value = JsonConvert.DeserializeObject(value, Type.GetType(valueType));
+            this.Value = SerializationHelper.DeserializeObject(value, valueType);
 		}
     }
 }
