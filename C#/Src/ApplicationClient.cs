@@ -210,11 +210,15 @@ namespace iKnodeSdk
                 string paramValue = String.Empty;
                 if(parameter.Value != null) {
                     paramValue = parameter.Value.ToString();
-                    paramValue = !SerializationHelper.IsPrimitiveType(parameter.Value.GetType()) 
-                                 ? JsonConvert.SerializeObject(parameter.Value) 
-                                 : (SerializationHelper.IsNumericType(parameter.Value.GetType(), parameter.Value.ToString()) 
-                                   ? String.Format("{0}", paramValue) 
-                                   : String.Format("\"{0}\"", paramValue));
+
+                    if (!SerializationHelper.IsPrimitiveType(parameter.Value.GetType())) {
+                        paramValue = JsonConvert.SerializeObject(parameter.Value);
+                    } else if(SerializationHelper.IsNumericType(parameter.Value.GetType(), parameter.Value.ToString()) 
+                          || (parameter.Value.ToString().StartsWith("{") && parameter.Value.ToString().EndsWith("}"))) {
+                        paramValue = String.Format("{0}", paramValue);
+                    } else {
+                        paramValue = String.Format("\"{0}\"", EscapeString(paramValue));
+                    }
                 }
 
                 paramBuilder.AppendFormat(" \"{0}\":{1}", parameter.Name, paramValue);
@@ -227,6 +231,16 @@ namespace iKnodeSdk
             paramBuilder.Append("}");
 
             return paramBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Escapes the selected text.
+        /// </summary>
+        /// <param name="textToEscape">Text to Escape.</param>
+        /// <returns>Escaped String.</returns>
+        private static string EscapeString(string textToEscape)
+        {
+            return textToEscape.Replace("\"", "\\\"").Replace("\'", "\\\'");
         }
     }
 }
