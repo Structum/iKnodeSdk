@@ -39,7 +39,7 @@ namespace iKnodeSdk
         /// <summary>
         /// API URL.
         /// </summary>
-        private const string ApiUrl = "http://localhost:4443/";//"https://api.iknode.com/";
+        private const string ApiUrl = "https://api.iknode.com/";
 
         /// <summary>
         /// Gets or Sets the iKnode API Service URL.
