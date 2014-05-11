@@ -214,7 +214,8 @@ namespace iKnodeSdk
                     if (!SerializationHelper.IsPrimitiveType(parameter.Value.GetType())) {
                         paramValue = JsonConvert.SerializeObject(parameter.Value);
                     } else if(SerializationHelper.IsNumericType(parameter.Value.GetType(), parameter.Value.ToString()) 
-                          || (parameter.Value.ToString().StartsWith("{") && parameter.Value.ToString().EndsWith("}"))) {
+                          || (paramValue.StartsWith("{") && paramValue.EndsWith("}"))
+                          || (paramValue.StartsWith("[") && paramValue.EndsWith("]"))) {
                         paramValue = String.Format("{0}", paramValue);
                     } else {
                         paramValue = String.Format("\"{0}\"", EscapeString(paramValue));

@@ -3,6 +3,9 @@ using Newtonsoft.Json;
 
 namespace iKnodeSdk
 {
+    /// <summary>
+    /// Defines the Serialization Helper.
+    /// </summary>
     internal class SerializationHelper
     {
         /// <summary>
@@ -35,6 +38,12 @@ namespace iKnodeSdk
                    typeCode == TypeCode.UInt16 || typeCode == TypeCode.UInt32 || typeCode == TypeCode.UInt64;
         }
 
+        /// <summary>
+        /// Deserializes the object.
+        /// </summary>
+        /// <param name="value">Value to Deserialize.</param>
+        /// <param name="valueType">Value Type.</param>
+        /// <returns></returns>
         public static object DeserializeObject(string value, string valueType)
         {
             var type = Type.GetType(valueType);
