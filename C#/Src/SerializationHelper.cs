@@ -28,11 +28,6 @@ namespace iKnodeSdk
         {
             var typeCode = Type.GetTypeCode(type);
 
-            if (typeCode == TypeCode.String) {
-                double temp;
-                return double.TryParse(textValue, out temp);
-            }
-
             return typeCode == TypeCode.Int16 || typeCode == TypeCode.Int32 || typeCode == TypeCode.Int64 ||
                    typeCode == TypeCode.Decimal || typeCode == TypeCode.Double || typeCode == TypeCode.Single ||
                    typeCode == TypeCode.UInt16 || typeCode == TypeCode.UInt32 || typeCode == TypeCode.UInt64;
