@@ -44,40 +44,24 @@ namespace iKnodeSdk
         /// <summary>
         /// Gets or Sets the iKnode API Service URL.
         /// </summary>
-        private string ServiceUrl
-        {
-            get;
-            set;
-        }
+        private string ServiceUrl { get; set; }
 
         /// <summary>
         /// Gets or Sets the User Identifier.
         /// </summary>
         /// <value>User Identifier.</value>
-        private string UserId 
-        {
-            get;
-            set;
-        }
+        private string UserId { get; set; }
 
         /// <summary>
         /// Gets or Sets the API Key.
         /// </summary>
         /// <value>API Key.</value>
-        private string ApiKey
-        {
-            get;
-            set;
-        }
+        private string ApiKey { get; set; }
 
         /// <summary>
         /// Gets the Application Name.
         /// </summary>
-        public string ApplicationName
-        {
-            get;
-            private set;
-        }
+        public string ApplicationName{ get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationClient"/> class.
@@ -113,7 +97,7 @@ namespace iKnodeSdk
         /// <returns>Result Object.</returns>
         public T Execute<T>(string methodName,  params MethodParameter[] parameters)
         {
-            string result = ExecuteRequest(this.ServiceUrl, this.UserId, this.ApiKey, this.ApplicationName, methodName, parameters);
+            string result = ExecuteRequest(this.ServiceUrl, this.UserId, this.ApiKey, this.ApplicationName, methodName, FormatParameters(parameters));
 
             var trimmedResult = result.Trim();
             if ((!trimmedResult.StartsWith("{") && !trimmedResult.StartsWith("[")) || typeof(T) == typeof(string)) {
@@ -132,7 +116,7 @@ namespace iKnodeSdk
         /// <param name="callback">Callback Method.</param>
         /// <param name="methodName">Method to execute.</param>
         /// <param name="parameters">Parameters to use.</param>
-        public Task<T> ExecuteAsync<T>(Action<T> callback, string methodName,  params MethodParameter[] parameters)
+        public Task<T> ExecuteAsync<T>(Action<T> callback, string methodName, params MethodParameter[] parameters)
         {
             Task<T> task = Task.Factory.StartNew(() => this.Execute<T>(methodName, parameters));
 
@@ -141,6 +125,11 @@ namespace iKnodeSdk
             }
 
             return task;
+        }
+
+        public static string ExecuteRaw(string serviceUrl, string userId, string apiKey, string appName, string methodName, params MethodParameter[] parameters)
+        {
+            return ExecuteRequest(serviceUrl, userId, apiKey, appName, methodName, FormatParameters(parameters, false));
         }
 
         /// <summary>
@@ -153,7 +142,7 @@ namespace iKnodeSdk
         /// <param name="methodName">Method to execute.</param>
         /// <param name="parameters">Parameters to use.</param>
         /// <returns>Result Object.</returns>
-        private static string ExecuteRequest(string serviceUrl, string userId, string apiKey, string appName, string methodName, params MethodParameter[] parameters)
+        private static string ExecuteRequest(string serviceUrl, string userId, string apiKey, string appName, string methodName, string parameters)
         {
             string appSvcUrl = String.Format("{0}/v3/{1}/{2}/{3}", serviceUrl, userId, appName, methodName);
 
@@ -162,7 +151,7 @@ namespace iKnodeSdk
             request.ContentType = "application/json";
             request.Headers.Add("iKnode-ApiKey", apiKey);
 
-            string requestBody = FormatParameters(parameters);
+            string requestBody = parameters;
 
             byte[] data = Encoding.UTF8.GetBytes(requestBody);
             using(Stream dataStream = request.GetRequestStream()) {
@@ -170,14 +159,15 @@ namespace iKnodeSdk
             }
 
             HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+            using (var responseStream = response.GetResponseStream()) {
+                if (responseStream == null) {
+                    return String.Empty;
+                }
 
-            var responseStream = response.GetResponseStream();
-            if (responseStream == null) {
-                return String.Empty;
+                using (var reader = new StreamReader(responseStream)) {
+                    return CleanResult(reader.ReadToEnd());
+                }
             }
-
-            string result = new StreamReader(responseStream).ReadToEnd();
-            return CleanResult(result);
         }
 
         /// <summary>
@@ -196,9 +186,12 @@ namespace iKnodeSdk
         /// <summary>
         /// Formats the parameter array to be used for the JSON REST command.
         /// </summary>
+        /// <remarks>
+        /// This method takes care of serializing complex (or custom) objects.
+        /// </remarks>
         /// <param name="parameters">Parameter Array.</param>
         /// <returns>Formatted Parameter String.</returns>
-        private static string FormatParameters(MethodParameter[] parameters)
+        private static string FormatParameters(MethodParameter[] parameters, bool serializeParamValues = true)
         {
             StringBuilder paramBuilder = new StringBuilder();
 
@@ -211,14 +204,11 @@ namespace iKnodeSdk
                 if(parameter.Value != null) {
                     paramValue = parameter.Value.ToString();
 
-                    if (!SerializationHelper.IsPrimitiveType(parameter.Value.GetType())) {
-                        paramValue = JsonConvert.SerializeObject(parameter.Value);
-                    } else if(SerializationHelper.IsNumericType(parameter.Value.GetType(), parameter.Value.ToString()) 
-                          || (paramValue.StartsWith("{") && paramValue.EndsWith("}"))
-                          || (paramValue.StartsWith("[") && paramValue.EndsWith("]"))) {
-                        paramValue = String.Format("{0}", paramValue);
-                    } else {
-                        paramValue = String.Format("\"{0}\"", EscapeString(paramValue));
+                    if (serializeParamValues) {
+                        Type type = parameter.Value.GetType();
+                        if (!type.IsValueType) {
+                            paramValue = type == typeof (String) ? String.Format("\"{0}\"", parameter.Value.ToString().Replace("\"", "\\\"")) : JsonConvert.SerializeObject(parameter.Value); 
+                        }
                     }
                 }
 
@@ -232,16 +222,6 @@ namespace iKnodeSdk
             paramBuilder.Append("}");
 
             return paramBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Escapes the selected text.
-        /// </summary>
-        /// <param name="textToEscape">Text to Escape.</param>
-        /// <returns>Escaped String.</returns>
-        private static string EscapeString(string textToEscape)
-        {
-            return textToEscape.Replace("\"", "\\\"").Replace("\'", "\\\'");
         }
     }
 }
