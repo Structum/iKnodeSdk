@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -127,9 +128,22 @@ namespace iKnodeSdk
             return task;
         }
 
-        public static string ExecuteRaw(string serviceUrl, string userId, string apiKey, string appName, string methodName, params MethodParameter[] parameters)
+        /// <summary>
+        /// Execute the Request without the help of the Application Client niceties, and
+        /// in a static mode. User this method when you don't want to create an instance
+        /// per application and you want to control every aspect of the call.
+        /// </summary>
+        /// <param name="serviceUrl">Full Service URL.</param>
+        /// <param name="userId">User Identifier.</param>
+        /// <param name="apiKey">API Key.</param>
+        /// <param name="appName">Application Name.</param>
+        /// <param name="methodName">Method Name.</param>
+        /// <param name="serializeParamValues">True to serialize the parameter values, false otherwise.</param>
+        /// <param name="parameters">Method Parameters</param>
+        /// <returns>Execution Result as a String.</returns>
+        public static string ExecuteRaw(string serviceUrl, string userId, string apiKey, string appName, string methodName, bool serializeParamValues, params MethodParameter[] parameters)
         {
-            return ExecuteRequest(serviceUrl, userId, apiKey, appName, methodName, FormatParameters(parameters, false));
+            return ExecuteRequest(serviceUrl, userId, apiKey, appName, methodName, FormatParameters(parameters, serializeParamValues));
         }
 
         /// <summary>
@@ -158,16 +172,23 @@ namespace iKnodeSdk
                 dataStream.Write(data, 0, data.Length);
             }
 
-            HttpWebResponse response = (HttpWebResponse) request.GetResponse();
-            using (var responseStream = response.GetResponseStream()) {
-                if (responseStream == null) {
-                    return String.Empty;
-                }
+            string result;
+            using (HttpWebResponse response = (HttpWebResponse) request.GetResponse()) {
+                using (var responseStream = response.GetResponseStream()) {
+                    if (responseStream == null) {
+                        return String.Empty;
+                    }
 
-                using (var reader = new StreamReader(responseStream)) {
-                    return CleanResult(reader.ReadToEnd());
+                    using (var reader = new StreamReader(responseStream)) {
+                        result = CleanResult(reader.ReadToEnd());
+                        reader.Close();
+                    }
+                    responseStream.Close();
                 }
+                response.Close();
             }
+
+            return result;
         }
 
         /// <summary>
@@ -190,15 +211,16 @@ namespace iKnodeSdk
         /// This method takes care of serializing complex (or custom) objects.
         /// </remarks>
         /// <param name="parameters">Parameter Array.</param>
+        /// <param name="serializeParamValues">True to serialize the parameter values, false otherwise.</param>
         /// <returns>Formatted Parameter String.</returns>
-        private static string FormatParameters(MethodParameter[] parameters, bool serializeParamValues = true)
+        private static string FormatParameters(ICollection<MethodParameter> parameters, bool serializeParamValues = true)
         {
             StringBuilder paramBuilder = new StringBuilder();
 
             paramBuilder.Append("{");
 
             int index = 0;
-            int count = parameters.Length;
+            int count = parameters.Count;
             foreach(MethodParameter parameter in parameters) {
                 string paramValue = String.Empty;
                 if(parameter.Value != null) {
@@ -206,8 +228,10 @@ namespace iKnodeSdk
 
                     if (serializeParamValues) {
                         Type type = parameter.Value.GetType();
-                        if (!type.IsValueType) {
-                            paramValue = type == typeof (String) ? String.Format("\"{0}\"", parameter.Value.ToString().Replace("\"", "\\\"")) : JsonConvert.SerializeObject(parameter.Value); 
+                        if (!type.IsValueType || type == typeof(Guid)) {
+                            paramValue = type == typeof (String) || type == typeof (Guid) 
+                                         ? String.Format("\"{0}\"", parameter.Value.ToString().Replace("\"", "\\\"")) 
+                                         : JsonConvert.SerializeObject(parameter.Value); 
                         }
                     }
                 }

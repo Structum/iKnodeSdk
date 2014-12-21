@@ -38,10 +38,13 @@ namespace iKnodeSdk
         /// </summary>
         /// <param name="value">Value to Deserialize.</param>
         /// <param name="valueType">Value Type.</param>
-        /// <returns></returns>
+        /// <returns>The deserialized object.</returns>
         public static object DeserializeObject(string value, string valueType)
         {
             var type = Type.GetType(valueType);
+            if (type == typeof (Guid) && !value.StartsWith("\"")) {
+                value = String.Format("\"{0}\"", value);
+            }
             return !IsPrimitiveType(type) ? JsonConvert.DeserializeObject(value, type) 
                                           : String.Format("{0}", value);
         }
