@@ -3,6 +3,8 @@
  */
 var iKnodeSdk = iKnodeSdk || {};
 
+iKnodeSdk.ServiceUrl = "https://api.iknode.com";
+
 /**
  * Initializes a new instance of the Application Client class.
  * @param {Object} config Configuration for the Application Client. ({String} userId, {String} apiKey, {String} appName)
@@ -15,7 +17,11 @@ iKnodeSdk.ApplicationClient = function(config) {
     this._userId = config.userId;
     this._apiKey = config.apiKey;
 	this._appName = config.appName;
-	this._serviceUrl = "https://api.iknode.com";
+
+	this._serviceUrl = iKnodeSdk.ServiceUrl;
+	if(config.serviceUrl) {
+		this._serviceUrl = config.serviceUrl;
+	}
 };
 
 /**
@@ -80,7 +86,7 @@ iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKe
     if (isAsync) {
         request.onreadystatechange = function () {
             if (request.readyState === 4 && request.status === 200) {
-				callback(iKnodeSdk.ApplicationClient._deserializeObject(request.responseText), request);
+				callback(iKnodeSdk.deserializeObject(request.responseText), request);
             }
         };
     }
@@ -90,7 +96,7 @@ iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKe
     request.send(formattedParams);
 
 	if(!isAsync && !iKnodeSdk.isNull(request.responseText)) {
-		return iKnodeSdk.ApplicationClient._deserializeObject(request.responseText);
+		return iKnodeSdk.deserializeObject(request.responseText);
 	}
 
 	return "";
@@ -101,7 +107,7 @@ iKnodeSdk.ApplicationClient._executeRequest = function(serviceUrl, userId, apiKe
  * @param {String} object Object to deserialize.
  * @return {Object} Deserialized Object.
  */
-iKnodeSdk.ApplicationClient._deserializeObject = function(object) {
+iKnodeSdk.DeserializeObject = function(object) {
 	var result = iKnodeSdk.ApplicationClient._cleanResult(object);
 
 	return (iKnodeSdk.isJson(result) ? JSON.parse(result) : result);
@@ -145,6 +151,92 @@ iKnodeSdk.ApplicationClient._formatParameters = function(parameters) {
     params += "}";
 
 	return JSON.parse(params);
+};
+
+/**
+ * Initializes a new instance of the Application Client class.
+ * @param {Object} config Configuration for the Application Client. ({String} userId, {String} apiKey, {String} appName)
+ */
+iKnodeSdk.DataClient = function(config) {
+	iKnodeSdk.validateConfigProperty(config, "userId");
+	iKnodeSdk.validateConfigProperty(config, "apiKey");
+	iKnodeSdk.validateConfigProperty(config, "collectionName");
+
+    this._userId = config.userId;
+    this._apiKey = config.apiKey;
+	this._collectionName = config.collectionName;
+
+	this._serviceUrl = iKnodeSdk.ServiceUrl;
+	if(config.serviceUrl) {
+		this._serviceUrl = config.serviceUrl;
+	}
+};
+
+/**
+ * Imports a CSV string content.
+ * @param {String} csv String containing the Comma delimited dataset.
+ * @param {Array} objKeys List of Object Key Column names that identify a unique record.
+ * @param {Function} callback Callback Function (Optional).
+ * @return Number of documents merged (Created/Updated).
+ */
+iKnodeSdk.DataClient.prototype.importCsv = function(contents, objKeys, callback) {
+	return this._import("Csv", contents, objKeys, callback);
+};
+
+/**
+ * Imports a JSON string content.
+ * @param {String} json String containing the JSON dataset.
+ * @param {Array} objKeys List of Object Key Column names that identify a unique record.
+ * @param {Function} callback Callback Function (Optional).
+ * @return Number of documents merged (Created/Updated).
+ */
+iKnodeSdk.DataClient.prototype.importJson = function(contents, objKeys, callback) {
+	return this._import("Json", contents, objKeys, callback);
+};
+
+/**
+ * Imports a CSV or JSON dataset.
+ * @param {String} type Dataset type, either 'Csv' or 'Json'.
+ * @param {String} contents String containing the dataset contents.
+ * @param {Array} objKeys List of Object Key Column names that identify a unique record.
+ * @param {Function} callback Callback Function (Optional).
+ * @return Number of documents merged (Created/Updated).
+ */
+iKnodeSdk.DataClient.prototype._import = function(type, contents, objKeys, callback) {
+	var dataSvcUrl = this._serviceUrl + "/v3/data/" + this._userId + "/" + this._collectionName;
+	var body = contents;
+	var isAsync = !(iKnodeSdk.isNull(callback));
+
+	var request = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+
+    request.open("POST", dataSvcUrl, isAsync);
+    request.setRequestHeader("Content-Type", "application/json");
+
+	if(!iKnodeSdk.isNull(this._apiKey) && this._apiKey != "") {
+		request.setRequestHeader("iKnode-ApiKey", this._apiKey);
+	}
+
+	if(!iKnodeSdk.isNull(objKeys) && objKeys.length > 0) {
+		request.setRequestHeader("iKnode-ObjectKeys", objKeys);
+	}
+
+	request.setRequestHeader("iKnode-Content-Type", type);
+
+    if (isAsync) {
+        request.onreadystatechange = function () {
+            if (request.readyState === 4 && request.status === 200) {
+				callback(iKnodeSdk.deserializeObject(request.responseText), request);
+            }
+        };
+    }
+
+    request.send(body);
+
+	if(!isAsync && !iKnodeSdk.isNull(request.responseText)) {
+		return iKnodeSdk.deserializeObject(request.responseText);
+	}
+
+	return "";
 };
 
 /**
@@ -219,4 +311,15 @@ iKnodeSdk.isJson = function(obj) {
 	return (/^[\],:{}\s]*$/.test(obj.replace(/\\["\\\/bfnrtu]/g, '@')
 								    .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
 									.replace(/(?:^|:|,)(?:\s*\[)+/g, '')));
+};
+
+			/**
+ * Deserializes the Selected Object.
+ * @param {String} object Object to deserialize.
+ * @return {Object} Deserialized Object.
+ */
+iKnodeSdk.deserializeObject = function(object) {
+	var result = iKnodeSdk.ApplicationClient._cleanResult(object);
+
+	return (iKnodeSdk.isJson(result) ? JSON.parse(result) : result);
 };
